@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Badge from '@/components/Badge';
 import StatusDot from '@/components/StatusDot';
-import { DELHI_NODES, dijkstra } from '@/components/DelhiMap';
+import { DELHI_NODES, dijkstra, GRAPH } from '@/components/delhiData';
 
 // Leaflet must be loaded client-side only (no SSR)
 const DelhiMap = dynamic(() => import('@/components/DelhiMap'), {
@@ -196,7 +196,7 @@ export default function PortalPage() {
                         </div>
                         <OtpInput />
                     </div>
-                    <button type="submit" className="w-full py-3.5 rounded-xl font-bold bg-gradient-to-br from-accent-cyan to-[#0099cc] text-black shadow-[0_0_20px_rgba(0,245,255,0.3)] hover:shadow-[0_0_30px_rgba(0,245,255,0.6)] transition-all font-sans cursor-pointer">
+                    <button type="submit" className="w-full py-3.5 rounded-xl font-bold bg-accent-cyan text-black shadow-[0_0_20px_rgba(0,245,255,0.3)] hover:shadow-[0_0_30px_rgba(0,245,255,0.6)] transition-all font-sans cursor-pointer">
                         Authenticate &amp; Access Portal
                     </button>
                 </form>
@@ -300,7 +300,7 @@ export default function PortalPage() {
                                 </div>
 
                                 <button onClick={calcRoute} disabled={calculating || originId === destinationId}
-                                    className="w-full py-3 rounded-xl font-bold bg-gradient-to-br from-accent-cyan to-[#0099cc] text-black disabled:opacity-60 hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] transition-all font-sans cursor-pointer">
+                                    className="w-full py-3 rounded-xl font-bold bg-accent-cyan text-black disabled:opacity-60 hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] transition-all font-sans cursor-pointer">
                                     {calculating ? 'Computing...' : 'Calculate Shortest Path'}
                                 </button>
                             </div>
@@ -357,7 +357,7 @@ export default function PortalPage() {
 
                                     {!corridorActive && (
                                         <button onClick={initiateWave} disabled={initiating}
-                                            className="w-full py-4 rounded-xl font-bold text-base bg-gradient-to-br from-accent-green to-[#00cc7a] text-black shadow-[0_0_20px_rgba(0,255,157,0.3)] hover:shadow-[0_0_30px_rgba(0,255,157,0.6)] disabled:opacity-60 transition-all font-sans cursor-pointer">
+                                            className="w-full py-4 rounded-xl font-bold text-base bg-accent-cyan text-black shadow-[0_0_20px_rgba(0,245,255,0.3)] hover:shadow-[0_0_30px_rgba(0,245,255,0.6)] disabled:opacity-60 transition-all font-sans cursor-pointer">
                                             {initiating ? 'Activating nodes...' : 'Initiate Green Wave'}
                                         </button>
                                     )}
