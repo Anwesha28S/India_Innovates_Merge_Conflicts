@@ -1,4 +1,5 @@
 import './globals.css';
+import { AuthProvider } from '@/components/AuthProvider';
 
 export const metadata = {
     title: 'AURA-GRID | AI-Powered Intelligent Traffic Management',
@@ -17,8 +18,11 @@ export default function RootLayout({ children }) {
             </head>
             <body className="bg-bg-deep text-text-primary font-sans overflow-x-hidden min-h-screen">
                 <div className="grid-bg" />
-                {children}
+                <AuthProvider>
+                    {children}
+                </AuthProvider>
             </body>
         </html>
     );
 }
+
