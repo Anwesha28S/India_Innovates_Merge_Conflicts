@@ -2,9 +2,9 @@ import './globals.css';
 import { AuthProvider } from '@/components/AuthProvider';
 
 export const metadata = {
-    title: 'AURA-GRID | AI-Powered Intelligent Traffic Management',
+    title: 'SignalSync | AI-Powered Intelligent Traffic Management',
     description:
-        'AURA-GRID uses AI vision, dynamic signal optimization, and verified green corridors to save lives, secure convoys, and reduce urban congestion.',
+        'SignalSync uses AI vision, dynamic signal optimization, and verified green corridors to save lives, secure convoys, and reduce urban congestion.',
 };
 
 export default function RootLayout({ children }) {

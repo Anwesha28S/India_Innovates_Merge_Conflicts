@@ -98,7 +98,7 @@ export default function AdminPage() {
             <nav className="relative z-10 flex items-center justify-between px-8 py-3.5 bg-bg-deep/95 border-b border-white/5 backdrop-blur-xl">
                 <Link href="/" className="flex items-center gap-2.5 font-extrabold text-xl no-underline text-white">
                     <div className="w-8 h-8 rounded-[6px] bg-gradient-to-br from-accent-red to-accent-violet flex items-center justify-center text-lg">⬡</div>
-                    <span><span className="text-accent-red">AURA</span>-GRID Admin</span>
+                    <span><span className="text-accent-red">Signal</span>Sync Admin</span>
                 </Link>
                 <div className="flex items-center gap-2.5">
                     <Badge variant="red">Administrator</Badge>

@@ -50,7 +50,7 @@ export default function RegisterPage() {
                 <div className="flex flex-col items-center mb-7">
                     <Link href="/" className="flex items-center gap-2.5 font-extrabold text-2xl mb-3 no-underline text-white">
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center text-2xl neon-cyan">⬡</div>
-                        <span><span className="text-accent-cyan">AURA</span>-GRID</span>
+                        <span><span className="text-accent-cyan">Signal</span>Sync</span>
                     </Link>
                     <h2 className="text-xl font-bold mt-1">Create Account</h2>
                     <p className="text-text-secondary text-sm mt-1 text-center">Register to create green corridors for emergency vehicles</p>

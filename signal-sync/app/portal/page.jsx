@@ -185,11 +185,11 @@ export default function PortalPage() {
     const handleNodeAdvance = useCallback((nodeIdx) => {
         setActiveNodeIdx(nodeIdx);
         try {
-            const raw = localStorage.getItem('aura_active_corridors');
+            const raw = localStorage.getItem('signalsync_active_corridors');
             const corridors = raw ? JSON.parse(raw) : [];
             if (corridors.length > 0) {
                 corridors[0].activeNodeIdx = nodeIdx;
-                localStorage.setItem('aura_active_corridors', JSON.stringify(corridors));
+                localStorage.setItem('signalsync_active_corridors', JSON.stringify(corridors));
             }
         } catch { }
     }, []);
@@ -208,10 +208,10 @@ export default function PortalPage() {
                 setActiveCdId(null);
             }
             try {
-                const raw = localStorage.getItem('aura_active_corridors');
+                const raw = localStorage.getItem('signalsync_active_corridors');
                 const corridors = raw ? JSON.parse(raw) : [];
                 const updated = corridors.filter(c => c.id !== activeCdId);
-                localStorage.setItem('aura_active_corridors', JSON.stringify(updated));
+                localStorage.setItem('signalsync_active_corridors', JSON.stringify(updated));
             } catch { }
         }, 2500);
     }, [activeCdId]);
@@ -268,7 +268,7 @@ export default function PortalPage() {
             });
 
             try {
-                const existing = localStorage.getItem('aura_active_corridors');
+                const existing = localStorage.getItem('signalsync_active_corridors');
                 const arr = existing ? JSON.parse(existing) : [];
                 arr.unshift({
                     id: docRef.id,
@@ -281,7 +281,7 @@ export default function PortalPage() {
                     corridorNodes: nodes.map(n => ({ id: n.id, name: n.name })),
                     activeNodeIdx: 0,
                 });
-                localStorage.setItem('aura_active_corridors', JSON.stringify(arr));
+                localStorage.setItem('signalsync_active_corridors', JSON.stringify(arr));
             } catch { }
 
             setActiveCdId(docRef.id);
@@ -322,7 +322,7 @@ export default function PortalPage() {
             <nav className="relative z-10 flex items-center justify-between px-10 py-3.5 bg-bg-deep/95 border-b border-white/5 backdrop-blur-xl">
                 <Link href="/" className="flex items-center gap-2.5 font-extrabold text-xl no-underline text-white">
                     <div className="w-8 h-8 rounded-[6px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan">⬡</div>
-                    <span><span className="text-accent-cyan">AURA</span>-GRID</span>
+                    <span><span className="text-accent-cyan">Signal</span>Sync</span>
                 </Link>
                 <div className="flex items-center gap-2.5">
                     {user ? (
@@ -435,7 +435,7 @@ export default function PortalPage() {
                                             <div className="text-xs text-text-secondary mt-1">{routeInfo.distanceText}</div>
                                         </div>
                                         <div className="flex-1 bg-accent-green/5 border border-accent-green/30 rounded-xl p-3.5 text-center">
-                                            <div className="text-[0.65rem] text-text-muted uppercase mb-1">AURA Corridor</div>
+                                            <div className="text-[0.65rem] text-text-muted uppercase mb-1">SignalSync Corridor</div>
                                             <div className="text-xl font-extrabold font-mono text-accent-green">~{Math.round((routeInfo.durationSec * 0.6) / 60)}m</div>
                                             <div className="text-xs text-text-secondary mt-1">Zero stops</div>
                                         </div>

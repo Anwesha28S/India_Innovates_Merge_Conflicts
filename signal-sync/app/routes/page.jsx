@@ -75,7 +75,7 @@ export default function RoutesPage() {
             <nav className="relative z-10 flex items-center justify-between px-8 py-3.5 bg-bg-deep/95 border-b border-white/5 backdrop-blur-xl">
                 <Link href="/" className="flex items-center gap-2.5 font-extrabold text-xl no-underline text-white">
                     <div className="w-8 h-8 rounded-[6px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan">⬡</div>
-                    <span><span className="text-accent-cyan">AURA</span>-GRID</span>
+                    <span><span className="text-accent-cyan">Signal</span>Sync</span>
                 </Link>
                 <div className="flex items-center gap-2.5">
                     <Badge variant="cyan"><StatusDot color="cyan" className="mr-1" />Live Traffic</Badge>

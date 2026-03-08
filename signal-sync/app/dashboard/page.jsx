@@ -267,7 +267,7 @@ export default function DashboardPage() {
     useEffect(() => {
         const poll = () => {
             try {
-                const raw = localStorage.getItem('aura_active_corridors');
+                const raw = localStorage.getItem('signalsync_active_corridors');
                 setLiveCorridors(raw ? JSON.parse(raw) : []);
             } catch { setLiveCorridors([]); }
         };
@@ -279,10 +279,10 @@ export default function DashboardPage() {
 
     function terminateCorridor(id) {
         try {
-            const raw = localStorage.getItem('aura_active_corridors');
+            const raw = localStorage.getItem('signalsync_active_corridors');
             const corridors = raw ? JSON.parse(raw) : [];
             const updated = corridors.filter(c => c.id !== id);
-            localStorage.setItem('aura_active_corridors', JSON.stringify(updated));
+            localStorage.setItem('signalsync_active_corridors', JSON.stringify(updated));
             setLiveCorridors(updated);
         } catch { }
     }
@@ -304,7 +304,7 @@ export default function DashboardPage() {
                 <header className="relative z-10 flex items-center justify-between px-6 py-4 bg-bg-deep/95 border-b border-white/5">
                     <Link href="/" className="flex items-center gap-2 font-extrabold text-xl no-underline text-white">
                         <div className="w-8 h-8 rounded-[6px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan">⬡</div>
-                        <span><span className="text-accent-cyan">AURA</span>-GRID</span>
+                        <span><span className="text-accent-cyan">Signal</span>Sync</span>
                     </Link>
                     <div className="flex items-center gap-3">
                         <Link href="/portal" className="inline-flex gap-1.5 items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent-cyan text-black no-underline">🔒 Portal</Link>
@@ -344,7 +344,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-3">
                     <Link href="/" className="flex items-center gap-2 font-extrabold text-lg no-underline text-white">
                         <div className="w-7 h-7 rounded-[5px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan text-sm">⬡</div>
-                        <span><span className="text-accent-cyan">AURA</span>-GRID</span>
+                        <span><span className="text-accent-cyan">Signal</span>Sync</span>
                     </Link>
                     <div className="w-px h-5 bg-white/10" />
                     <span className="text-xs text-text-muted">Live Control</span>

@@ -22,7 +22,7 @@ export default function Navbar() {
                     ⬡
                 </div>
                 <span>
-                    <span className="text-accent-cyan">AURA</span>-GRID
+                    <span className="text-accent-cyan">Signal</span>Sync
                 </span>
             </Link>
 

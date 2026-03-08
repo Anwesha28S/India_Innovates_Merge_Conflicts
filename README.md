@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⬡ AURA-GRID
+# ⬡ SignalSync
 ### Adaptive Urban Route Architecture — Intelligent Traffic Grid
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
@@ -34,7 +34,7 @@
 
 ## 🌐 Overview
 
-AURA-GRID is a full-stack Next.js web application built by **Team Merge_Conflicts** for the **India Innovates Hackathon**. It demonstrates how real-time traffic intelligence and green corridor preemption can save lives by eliminating red-light delays for emergency vehicles.
+SignalSync is a full-stack Next.js web application built by **Team Merge_Conflicts** for the **India Innovates Hackathon**. It demonstrates how real-time traffic intelligence and green corridor preemption can save lives by eliminating red-light delays for emergency vehicles.
 
 **Three core pillars:**
 
@@ -52,7 +52,7 @@ AURA-GRID is a full-stack Next.js web application built by **Team Merge_Conflict
 - 🛡️ VVIP convoys stopped at traffic lights become **static security targets**
 - 🚗 Fixed-timer signals waste fuel on empty lanes every single day
 
-AURA-GRID solves all three with a connected signals platform that a dispatcher can trigger in seconds.
+SignalSync solves all three with a connected signals platform that a dispatcher can trigger in seconds.
 
 ---
 
@@ -114,7 +114,7 @@ India_Innovates_Merge_Conflicts/
 │
 ├── README.md                     ← You are here
 │
-└── aura-grid/                    ← Next.js application root
+└── SignalSync/                    ← Next.js application root
     │
     ├── app/                      # Pages (Next.js App Router)
     │   ├── layout.jsx            # Root layout — AuthProvider, global styles
@@ -179,10 +179,10 @@ cd India_Innovates_Merge_Conflicts
 ### 2. Navigate into the app folder
 
 ```bash
-cd aura-grid
+cd SignalSync
 ```
 
-> ⚠️ **Important:** All commands below must be run from inside `aura-grid/`, not from the repo root.
+> ⚠️ **Important:** All commands below must be run from inside `SignalSync/`, not from the repo root.
 
 ### 3. Install dependencies
 
@@ -197,7 +197,7 @@ npm install
 
 ### 4. Configure environment variables
 
-Create a file named `.env.local` inside `aura-grid/` (see [Environment Variables](#-environment-variables) below).
+Create a file named `.env.local` inside `SignalSync/` (see [Environment Variables](#-environment-variables) below).
 
 ### 5. Run the development server
 
@@ -205,7 +205,7 @@ Create a file named `.env.local` inside `aura-grid/` (see [Environment Variables
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — you should see the AURA-GRID homepage. 🎉
+Open [http://localhost:3000](http://localhost:3000) — you should see the SignalSync homepage. 🎉
 
 ### 6. Build for production (optional)
 
@@ -218,7 +218,7 @@ npm run start
 
 ## 🔑 Environment Variables
 
-Create `aura-grid/.env.local` with your keys:
+Create `SignalSync/.env.local` with your keys:
 
 ```env
 # ── Google Maps ───────────────────────────────────────────────────────────────
@@ -362,7 +362,7 @@ service cloud.firestore {
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Make changes inside `aura-grid/`
+3. Make changes inside `SignalSync/`
 4. Test locally: `npm run dev`
 5. Commit: `git commit -m "Add: description of change"`
 6. Push: `git push origin feature/your-feature-name`
@@ -374,7 +374,7 @@ service cloud.firestore {
 
 **Built with ❤️ by [Team Merge_Conflicts](https://github.com/prathamb9/India_Innovates_Merge_Conflicts)**
 
-*AURA-GRID · India Innovates Hackathon · 2026*
+*SignalSync · India Innovates Hackathon · 2026*
 
 *Saving the Golden Hour, one green signal at a time.*
 

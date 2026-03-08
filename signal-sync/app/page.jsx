@@ -170,7 +170,7 @@ const FLOWS = [
         desc: 'The public-facing layer. Every citizen benefits from AI-optimized routing without any special access.',
         steps: [
             ['Open the public app', 'Enter your destination as usual'],
-            ['AI Overlay Applied', 'Base route from Google Maps API, augmented with live intersection wait times from AURA-GRID cameras'],
+            ['AI Overlay Applied', 'Base route from Google Maps API, augmented with live intersection wait times from SignalSync cameras'],
             ['Dynamic Re-routing', 'If your route hits density >70%, the app reroutes you in real time, naturally balancing city-wide load'],
             ['Arrive Faster', 'Average 40% reduction in intersection wait time citywide'],
         ],
@@ -323,7 +323,7 @@ function FaqSection() {
             <div className="max-w-[1200px] mx-auto px-10">
                 <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />Judge Q&A</div>
                 <h2 className="text-4xl font-extrabold tracking-tight mb-3">Edge Cases & <span className="grad-text">Fail-Safes</span></h2>
-                <p className="text-text-secondary mb-12 max-w-xl">AURA-GRID anticipates real-world failure modes. Every "What if?" has an engineered answer.</p>
+                <p className="text-text-secondary mb-12 max-w-xl">SignalSync anticipates real-world failure modes. Every "What if?" has an engineered answer.</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     {FAQS.map((faq, i) => (
                         <div key={i} onClick={() => setOpen(open === i ? null : i)}
@@ -361,7 +361,7 @@ export default function HomePage() {
                             Intelligent Traffic<br />That <span className="grad-text">Saves Lives</span><br />in Real Time
                         </h1>
                         <p className="text-[1.05rem] text-text-secondary leading-relaxed max-w-[520px] mb-8">
-                            AURA-GRID fuses AI vision, predictive preemption, and verified green corridors to clear the path for ambulances, secure VVIP convoys, and optimize every intersection — automatically.
+                            SignalSync fuses AI vision, predictive preemption, and verified green corridors to clear the path for ambulances, secure VVIP convoys, and optimize every intersection — automatically.
                         </p>
                         <div className="flex flex-wrap gap-3 mb-12">
                             <a href="#pillars" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-accent-cyan text-black shadow-[0_0_20px_rgba(0,245,255,0.3)] hover:shadow-[0_0_30px_rgba(0,245,255,0.6)] hover:-translate-y-px transition-all">Explore The Solution →</a>
@@ -413,7 +413,7 @@ export default function HomePage() {
                 <div className="max-w-[1200px] mx-auto px-10">
                     <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />The Solution</div>
                     <h2 className="text-4xl font-extrabold tracking-tight mb-3">Three-Pillar <span className="grad-text">Architecture</span></h2>
-                    <p className="text-text-secondary mb-12 max-w-xl">AURA-GRID operates on three synergistic layers, each solving a distinct failure mode of traditional traffic systems.</p>
+                    <p className="text-text-secondary mb-12 max-w-xl">SignalSync operates on three synergistic layers, each solving a distinct failure mode of traditional traffic systems.</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <PillarCard letter="A" badge="Pillar A" variant="cyan" title="AI Vision & Dynamic Signal Control" desc="YOLOv8 cameras count vehicles in real time and allocate green time proportionally — never wasting a cycle on an empty lane." features={['Real-time vehicle density detection', 'Dynamic green time allocation', 'Live Google Maps density overlay']} tags={['YOLOv8', 'OpenCV', 'WebSocket']} />
                         <PillarCard letter="B" badge="Pillar B" variant="green" title="Visual Failsafe — Camera Override" desc="Edge-AI detects ambulance shape, color, and strobes locally. No GPS or portal needed — triggers a 3-second safe clearance automatically." features={['Works offline, no cloud needed', '3s yellow → red → green sequence', '97%+ detection confidence']} tags={['Edge AI', 'PyTorch', 'Offline']} />
@@ -441,7 +441,7 @@ export default function HomePage() {
                     <div className="md:col-span-1">
                         <Link href="/" className="flex items-center gap-2.5 font-extrabold text-xl no-underline text-white mb-3">
                             <div className="w-9 h-9 rounded-[6px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan">⬡</div>
-                            <span><span className="text-accent-cyan">AURA</span>-GRID</span>
+                            <span><span className="text-accent-cyan">Signal</span>Sync</span>
                         </Link>
                         <p className="text-text-muted text-xs leading-relaxed mb-4">AI-powered intelligent traffic management. Saving lives, securing convoys, reducing congestion.</p>
                         <div className="flex items-center gap-2"><StatusDot color="green" /><span className="text-xs text-text-secondary">All Systems Operational</span></div>
@@ -482,7 +482,7 @@ export default function HomePage() {
                     </div>
                 </div>
                 <div className="border-t border-white/5 px-10 py-4 flex justify-between items-center flex-wrap gap-3">
-                    <span className="text-[0.7rem] text-text-muted">© 2026 AURA-GRID · India Innovates Hackathon · Prototype v1.0</span>
+                    <span className="text-[0.7rem] text-text-muted">© 2026 SignalSync · India Innovates Hackathon · Prototype v1.0</span>
                     <span className="text-[0.7rem] text-text-muted">Built with Next.js · React · Tailwind CSS</span>
                 </div>
             </footer>
