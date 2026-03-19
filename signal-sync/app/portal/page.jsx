@@ -8,7 +8,7 @@ import CorridorStatusBox from '@/components/CorridorStatusBox';
 import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { MAPS_LIBRARIES } from '@/components/DelhiMap';
 import { useAuth } from '@/components/AuthProvider';
-import { createCorridor, terminateCorridor, subscribeActiveCOrridors } from '@/lib/firestore';
+import { createCorridor, terminateCorridor, subscribeActiveCOrridors, setSignalStatus } from '@/lib/firestore';
 import { pickCorridorNodes } from '@/lib/cityNodes';
 
 const DelhiMap = dynamic(() => import('@/components/DelhiMap'), {
@@ -91,6 +91,9 @@ export default function PortalPage() {
     const [corridorNodes, setCorridorNodes] = useState([]);
     const [activeNodeIdx, setActiveNodeIdx] = useState(0);
     const [activeCdId, setActiveCdId] = useState(null);
+
+    // ── IoT preemption visual state ──────────────────────────────────────────
+    const [iotPreemption, setIotPreemption] = useState(null); // { nodeName, distance }
 
     // ── GPS / Navigation state ───────────────────────────────────────────────
     const [userLocation, setUserLocation] = useState(null);
@@ -182,8 +185,14 @@ export default function PortalPage() {
     }
 
     // ── Callback fired by DelhiMap as ambulance crosses each node ──────────────
-    const handleNodeAdvance = useCallback((nodeIdx) => {
+    const handleNodeAdvance = useCallback(async (nodeIdx) => {
         setActiveNodeIdx(nodeIdx);
+
+        // Auto-release the previous node's IOT preemption now that the ambulance has crossed it
+        if (corridorNodes[nodeIdx - 1]?.id) {
+            try { await setSignalStatus(corridorNodes[nodeIdx - 1].id, 'auto', null); } catch (e) { console.error(e); }
+        }
+
         try {
             const raw = localStorage.getItem('signalsync_active_corridors');
             const corridors = raw ? JSON.parse(raw) : [];
@@ -192,12 +201,39 @@ export default function PortalPage() {
                 localStorage.setItem('signalsync_active_corridors', JSON.stringify(corridors));
             }
         } catch { }
+    }, [corridorNodes]);
+
+    // ── Callback fired when ambulance enters 500m geofence ────────────────────
+    const handleIotTrigger = useCallback((node, distance) => {
+        if (!node.id) return;
+        console.log(`⚡ IOT PREEMPTION: ${node.name} (${node.id}) — ambulance ${distance}m away`);
+        // Show visual indicator on portal
+        setIotPreemption({ nodeName: node.name, distance });
+        // Auto-clear the indicator after 8 seconds
+        setTimeout(() => setIotPreemption(null), 8000);
+
+        // Encode the distance into the overriddenBy string for the dashboard to parse.
+        // We do NOT await this, and we silently catch network timeouts.
+        setSignalStatus(node.id, 'green', `IOT-AUTO:${distance}`)
+            .then(() => console.log(`  ✓ Firestore signal overridden: ${node.id} → GREEN`))
+            .catch(e => {
+                // Ignore "Could not reach Cloud Firestore backend" offline errors that happen if websocket drops
+                if (!e.message?.includes('Cloud Firestore backend')) {
+                    console.error('Failed to trigger IoT preemption', e);
+                }
+            });
     }, []);
 
     // ── Auto-terminate when ambulance reaches destination ──────────────────────
     const handleArrival = useCallback(async () => {
         setActiveNodeIdx(prev => prev + 100);
         setTimeout(async () => {
+            // Force release the final intersection upon arrival
+            if (corridorNodes.length > 0) {
+                const lastNode = corridorNodes[corridorNodes.length - 1];
+                if (lastNode?.id) try { await setSignalStatus(lastNode.id, 'auto', null); } catch (e) { }
+            }
+
             setCorridorActive(false);
             setShowCorridor(false);
             setCorridorNodes([]);
@@ -303,6 +339,7 @@ export default function PortalPage() {
     const corridorNodeMarkers = corridorNodes
         .filter(n => n.pos)
         .map((n, i) => ({
+            id: n.id,
             lat: n.pos[0],
             lng: n.pos[1],
             name: n.name,
@@ -563,6 +600,7 @@ export default function PortalPage() {
                                 corridorNodeMarkers={corridorNodeMarkers}
                                 userLocation={userLocation}
                                 navigationMode={navigationMode}
+                                onIotTrigger={handleIotTrigger}
                             />
                         </div>
 

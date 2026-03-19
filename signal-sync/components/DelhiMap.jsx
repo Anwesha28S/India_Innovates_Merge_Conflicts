@@ -61,6 +61,19 @@ const DARK_STYLE = [
 
 const MAP_STYLE = { height: '100%', width: '100%' };
 
+// ─── Geo Math ─────────────────────────────────────────────────────────────────
+function getHaversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad;
+    const dLon = (lon2 - lon1) * rad;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
 // ─── Signal label overlay at corridor node ─────────────────────────────────
 function SignalLabel({ position, status, name }) {
     const colors = {
@@ -96,16 +109,18 @@ function SignalLabel({ position, status, name }) {
 }
 
 // ─── Moving ambulance ─────────────────────────────────────────────────────────
-function MovingAmbulance({ path, active, onNodeUpdate, totalNodes, onNodeAdvance, nodeCount }) {
+function MovingAmbulance({ path, active, onNodeUpdate, totalNodes, onNodeAdvance, nodeCount, corridorNodeMarkers, onIotTrigger }) {
     const [pos, setPos] = useState(path[0] || { lat: 28.59, lng: 77.12 });
     const timer = useRef(null);
     const idx = useRef(0);
     const lastNodeFired = useRef(-1);
+    const iotFiredForNode = useRef(new Set());
 
     useEffect(() => {
         if (!active || !path.length) return;
         idx.current = 0;
         lastNodeFired.current = -1;
+        iotFiredForNode.current.clear();
         setPos(path[0]);
         // Fire node 0 immediately
         if (onNodeAdvance) onNodeAdvance(0);
@@ -117,15 +132,33 @@ function MovingAmbulance({ path, active, onNodeUpdate, totalNodes, onNodeAdvance
                 return;
             }
             idx.current++;
-            setPos(path[idx.current]);
+            const currentPos = path[idx.current];
+            setPos(currentPos);
 
             // Fire onNodeAdvance when ambulance crosses each node threshold
+            let currentNodeIdx = lastNodeFired.current;
             if (onNodeAdvance && nodeCount > 1) {
                 const fraction = idx.current / (path.length - 1);
-                const nodeIdx = Math.min(Math.floor(fraction * nodeCount), nodeCount - 1);
-                if (nodeIdx > lastNodeFired.current) {
-                    lastNodeFired.current = nodeIdx;
-                    onNodeAdvance(nodeIdx);
+                const calcNodeIdx = Math.min(Math.floor(fraction * nodeCount), nodeCount - 1);
+                if (calcNodeIdx > lastNodeFired.current) {
+                    lastNodeFired.current = calcNodeIdx;
+                    currentNodeIdx = calcNodeIdx;
+                    onNodeAdvance(calcNodeIdx);
+                }
+            }
+
+            // IoT 500m Trigger Logic — scan ALL upcoming nodes, not just the next one
+            if (onIotTrigger && corridorNodeMarkers?.length) {
+                for (let ni = currentNodeIdx + 1; ni < corridorNodeMarkers.length; ni++) {
+                    if (iotFiredForNode.current.has(ni)) continue;
+                    const targetNode = corridorNodeMarkers[ni];
+                    if (targetNode && targetNode.lat && targetNode.lng) {
+                        const distMeters = getHaversineDistance(currentPos.lat, currentPos.lng, targetNode.lat, targetNode.lng);
+                        if (distMeters <= 500) {
+                            iotFiredForNode.current.add(ni);
+                            onIotTrigger(targetNode, Math.round(distMeters));
+                        }
+                    }
                 }
             }
 
@@ -143,6 +176,29 @@ function MovingAmbulance({ path, active, onNodeUpdate, totalNodes, onNodeAdvance
     return <Marker position={pos} icon={icon} zIndex={1000} title="🚑 Ambulance" />;
 }
 
+// ─── Path Densifier ────────────────────────────────────────────────────────
+function densifyPath(path, maxDistanceMeters = 20) {
+    if (path.length < 2) return path;
+    const dense = [path[0]];
+    for (let i = 1; i < path.length; i++) {
+        const p1 = path[i - 1];
+        const p2 = path[i];
+        const dist = getHaversineDistance(p1.lat, p1.lng, p2.lat, p2.lng);
+        if (dist > maxDistanceMeters) {
+            const steps = Math.ceil(dist / maxDistanceMeters);
+            for (let j = 1; j < steps; j++) {
+                const fraction = j / steps;
+                dense.push({
+                    lat: p1.lat + (p2.lat - p1.lat) * fraction,
+                    lng: p1.lng + (p2.lng - p1.lng) * fraction
+                });
+            }
+        }
+        dense.push(p2);
+    }
+    return dense;
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 // Props:
 //   showCorridor        – bool
@@ -155,9 +211,10 @@ function MovingAmbulance({ path, active, onNodeUpdate, totalNodes, onNodeAdvance
 //   onNodeUpdate        – callback(n) — fires when ambulance reaches end
 //   onNodeAdvance       – callback(nodeIdx) — fires as ambulance crosses each node
 //   corridorNodeCount   – number, for path fraction calc
-//   corridorNodeMarkers – [{ lat, lng, status, name }] — signal overlays on map
+//   corridorNodeMarkers – [{ id, lat, lng, status, name }] — signal overlays on map
 //   userLocation        – { lat, lng } | null — live GPS dot
 //   navigationMode      – bool — map follows userLocation when true
+//   onIotTrigger        – callback(node, distance) — fires when ambulance < 500m to next signal
 export default function DelhiMap({
     showCorridor,
     corridorActive,
@@ -172,6 +229,7 @@ export default function DelhiMap({
     corridorNodeMarkers = [],
     userLocation = null,
     navigationMode = false,
+    onIotTrigger,
 }) {
     const { isLoaded, loadError } = useJsApiLoader({
         id: 'google-map-script',
@@ -225,8 +283,10 @@ export default function DelhiMap({
             (result, status) => {
                 if (status === 'OK') {
                     setDirections(result);
-                    const path = result.routes[0].overview_path.map(p => ({ lat: p.lat(), lng: p.lng() }));
-                    setRoutePath(path);
+                    let rawPath = result.routes[0].overview_path.map(p => ({ lat: p.lat(), lng: p.lng() }));
+                    // Interpolate path so vertices are max 20m apart for smooth & reliable IoT triggers
+                    const smoothPath = densifyPath(rawPath, 20);
+                    setRoutePath(smoothPath);
                     const leg = result.routes[0].legs[0];
                     onRouteResult && onRouteResult({
                         distanceText: leg.distance?.text || '',
@@ -343,6 +403,18 @@ export default function DelhiMap({
                     return (
                         <React.Fragment key={`node-${i}`}>
                             <Circle center={{ lat: node.lat, lng: node.lng }} options={opts} />
+                            
+                            {/* IoT 500m glowing geofence ring for the active/prep nodes */}
+                            {corridorActive && node.status === 'prep' && (
+                                <Circle 
+                                    center={{ lat: node.lat, lng: node.lng }} 
+                                    options={{ 
+                                        strokeColor: '#00f5ff', fillColor: '#00f5ff', fillOpacity: 0.04, 
+                                        strokeWeight: 1, radius: 500, strokeOpacity: 0.8
+                                    }} 
+                                />
+                            )}
+
                             <SignalLabel
                                 position={{ lat: node.lat, lng: node.lng }}
                                 status={node.status}
@@ -361,6 +433,8 @@ export default function DelhiMap({
                         totalNodes={corridorNodeCount}
                         onNodeAdvance={onNodeAdvance}
                         nodeCount={corridorNodeCount}
+                        corridorNodeMarkers={corridorNodeMarkers}
+                        onIotTrigger={onIotTrigger}
                     />
                 )}
             </GoogleMap>

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { CITY_NODES } from '@/lib/cityNodes';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { subscribeSignals } from '@/lib/firestore';
 
 /* ─── Per-city camera sets (6 intersections each) ────────────────────────── */
 const CITY_CAMERAS = {
@@ -139,13 +140,14 @@ function OverrideBtn({ label, color, active, disabled, onClick }) {
 }
 
 /* ─── Camera card ────────────────────────────────────────────────────────── */
-function CameraCard({ cam, density, signal, timer, event, emergency, manualOverride, onManualGreen, onManualRed, onManualReset }) {
-    // Signal priority: emergency > manualOverride > auto phase
-    const displaySignal = emergency || manualOverride || signal;
-    const isEmgGreen  = emergency === 'green';
+function CameraCard({ cam, density, signal, timer, event, emergency, manualOverride, iotOverride, onManualGreen, onManualRed, onManualReset }) {
+    // Signal priority: iotOverride > emergency > manualOverride > auto phase
+    const isIot       = !!iotOverride;
+    const displaySignal = isIot ? 'green' : (emergency || manualOverride || signal);
+    const isEmgGreen  = emergency === 'green' || isIot;
     const isEmgRed    = emergency === 'red';
     const isEmgYellow = emergency === 'yellow';
-    const isManual    = !emergency && manualOverride !== null;
+    const isManual    = !emergency && !isIot && manualOverride !== null;
     const barColor    = density < 40 ? '#00ff9d' : density < 70 ? '#ffb800' : '#ff3b5c';
     const isAmbulance = event?.type === 'ambulance';
     const isDense     = event?.type === 'dense';
@@ -159,7 +161,8 @@ function CameraCard({ cam, density, signal, timer, event, emergency, manualOverr
     const cardBorder = isEmgGreen ? 'rgba(0,255,157,0.4)' : isManual ? (manualOverride === 'green' ? 'rgba(0,255,157,0.35)' : 'rgba(255,59,92,0.35)') : density >= 70 ? 'rgba(255,59,92,0.2)' : 'rgba(255,255,255,0.06)';
     const cardBg    = isEmgGreen ? 'rgba(0,255,157,0.05)' : isEmgRed ? 'rgba(255,59,92,0.03)' : isManual ? 'rgba(167,139,250,0.04)' : 'rgba(10,15,26,0.8)';
 
-    const statusText = isEmgGreen ? 'EMERGENCY CLEAR'
+    const statusText = isIot ? `⚡ IOT PREEMPTION (${iotOverride}m)`
+        : isEmgGreen ? 'EMERGENCY CLEAR'
         : isEmgRed ? 'CROSS STOPPED'
         : isManual ? `MANUAL — ${manualOverride.toUpperCase()}`
         : isDense ? 'EXTENDING GREEN'
@@ -213,6 +216,10 @@ function CameraCard({ cam, density, signal, timer, event, emergency, manualOverr
                     <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#ff3b5c', animation: 'pulse-dot 1.2s infinite' }} />
                     <span style={{ fontSize: '0.4rem', fontWeight: 800, color: '#ff3b5c', fontFamily: 'monospace', letterSpacing: '0.06em' }}>REC</span>
                 </div>
+                {/* IoT Preemption Flash */}
+                {isIot && (
+                    <div style={{ position: 'absolute', inset: 0, boxSizing: 'border-box', border: '3px solid #00ff9d', boxShadow: 'inset 0 0 20px #00ff9d', zIndex: 4, animation: 'pulse-dot 1s infinite', background: 'rgba(0,255,157,0.1)', pointerEvents: 'none' }} />
+                )}
             </div>
 
             {/* Density bar */}
@@ -284,6 +291,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
         event:         null,
         emergency:     null,
         manualOverride: null,
+        iotOverride:   null,
     })));
 
     const [log, setLog]       = useState([]);
@@ -302,6 +310,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
             event:         null,
             emergency:     null,
             manualOverride: null,
+            iotOverride:   null,
         })));
         setLog([{ ts: '--:--:--', msg: `Camera network switched to ${cityName}` }]);
     }, [cityName]);
@@ -328,7 +337,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
         const t = setInterval(() => {
             if (pausedRef.current) return;
             setCams(prev => prev.map(c => {
-                if (c.emergency !== null || c.manualOverride !== null) return c;
+                if (c.emergency !== null || c.manualOverride !== null || c.iotOverride !== null) return c;
                 let { phase, timer } = c;
                 timer -= 1;
                 if (timer <= 0) {
@@ -356,7 +365,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
         const t = setInterval(() => {
             if (pausedRef.current || overrideRef.current) return;
             setCams(prev => prev.map((c, i) => {
-                if (c.density >= 72 && c.phase === 'red' && c.emergency === null && c.manualOverride === null) {
+                if (c.density >= 72 && c.phase === 'red' && c.emergency === null && c.manualOverride === null && c.iotOverride === null) {
                     addLog(`Dense traffic: ${cameras[i].id} (${c.density}%) — green phase extended`);
                     return { ...c, phase: 'green', timer: CYCLE.green, event: { type: 'dense' } };
                 }
@@ -428,13 +437,33 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
         addLog(`Awaiting live Firebase events from Python Edge Node...`);
     }, []);
 
+    /* Listen for Firestore Signals (IoT Geofence Triggers) */
+    useEffect(() => {
+        const unsubscribe = subscribeSignals((signalsData) => {
+            setCams(prev => prev.map(c => {
+                const sig = signalsData[c.id];
+                if (sig && sig.status === 'green' && sig.overriddenBy?.startsWith('IOT-AUTO:')) {
+                    const dist = sig.overriddenBy.split(':')[1];
+                    if (c.iotOverride !== dist) {
+                        return { ...c, iotOverride: dist, phase: 'green' };
+                    }
+                } else if (c.iotOverride !== null) {
+                    return { ...c, iotOverride: null };
+                }
+                return c;
+            }));
+        });
+        return () => unsubscribe();
+    }, []);
+
     const avgDensity = Math.round(cams.reduce((s, c) => s + c.density, 0) / cams.length);
-    const isOverride = cams.some(c => c.emergency !== null);
+    const isOverride = cams.some(c => c.emergency !== null || c.iotOverride !== null);
     const emgActive  = cams.some(c => c.emergency === 'green');
+    const iotActive  = cams.some(c => c.iotOverride !== null);
     const manualCount = cams.filter(c => c.manualOverride !== null).length;
 
     return (
-        <div style={{ background: 'rgba(7,12,22,0.97)', border: `1px solid ${emgActive ? 'rgba(0,255,157,0.25)' : manualCount > 0 ? 'rgba(167,139,250,0.2)' : 'rgba(0,245,255,0.1)'}`, borderRadius: 20, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14, transition: 'border-color 0.5s' }}>
+        <div style={{ background: 'rgba(7,12,22,0.97)', border: `1px solid ${emgActive || iotActive ? 'rgba(0,255,157,0.25)' : manualCount > 0 ? 'rgba(167,139,250,0.2)' : 'rgba(0,245,255,0.1)'}`, borderRadius: 20, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14, transition: 'border-color 0.5s' }}>
 
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
@@ -442,9 +471,10 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: paused ? '#ffb800' : isOverride ? '#ff3b5c' : '#00ff9d', boxShadow: `0 0 10px ${paused ? '#ffb800' : isOverride ? '#ff3b5c' : '#00ff9d'}`, animation: 'pulse-dot 1.2s infinite', flexShrink: 0 }} />
                     <div>
                         <div style={{ fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', marginBottom: 2 }}>AI Camera Network · YOLO-v8 · {cityName}</div>
-                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: emgActive ? '#00ff9d' : manualCount > 0 ? '#a78bfa' : paused ? '#ffb800' : 'rgba(255,255,255,0.9)' }}>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: emgActive || iotActive ? '#00ff9d' : manualCount > 0 ? '#a78bfa' : paused ? '#ffb800' : 'rgba(255,255,255,0.9)' }}>
                             {paused ? 'System Paused'
                                 : emgActive ? 'Emergency Override — Green corridor active'
+                                : iotActive ? '⚡ IoT Auto-Preemption Active (Ambulance <500m)'
                                 : manualCount > 0 ? `${manualCount} signal${manualCount > 1 ? 's' : ''} under manual control`
                                 : `Monitoring ${cameras.length} intersections — Signal cycle running`}
                         </div>
@@ -473,6 +503,14 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
                 </div>
             )}
 
+            {/* IoT auto-preemption banner */}
+            {iotActive && !emgActive && (
+                <div style={{ background: 'rgba(0,245,255,0.06)', border: '1px solid rgba(0,245,255,0.25)', borderRadius: 11, padding: '9px 14px' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#00f5ff', letterSpacing: '0.05em' }}>⚡ IoT Auto-Preemption Active (Ambulance within 500m)</div>
+                    <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>Signal preempted via real-time GPS telemetry from emergency vehicle · Hands-free operation</div>
+                </div>
+            )}
+
             {/* Manual override info banner */}
             {!emgActive && manualCount > 0 && (
                 <div style={{ background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.2)', borderRadius: 11, padding: '9px 14px' }}>
@@ -493,6 +531,7 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
                         event={c.event}
                         emergency={c.emergency}
                         manualOverride={c.manualOverride}
+                        iotOverride={c.iotOverride}
                         onManualGreen={() => handleManualOverride(i, 'green')}
                         onManualRed={() => handleManualOverride(i, 'red')}
                         onManualReset={() => handleManualReset(i)}
