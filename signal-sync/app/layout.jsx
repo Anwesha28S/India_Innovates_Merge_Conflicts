@@ -1,5 +1,7 @@
 import './globals.css';
 import { AuthProvider } from '@/components/AuthProvider';
+import { LanguageProvider } from '@/components/LanguageProvider';
+import LanguagePicker from '@/components/LanguagePicker';
 
 export const metadata = {
     title: 'SignalSync | AI-Powered Intelligent Traffic Management',
@@ -17,12 +19,15 @@ export default function RootLayout({ children }) {
                 />
             </head>
             <body className="bg-bg-deep text-text-primary font-sans overflow-x-hidden min-h-screen">
-                <div className="grid-bg" />
-                <AuthProvider>
-                    {children}
-                </AuthProvider>
+                <LanguageProvider>
+                    <LanguagePicker />
+                    <AuthProvider>
+                        {children}
+                    </AuthProvider>
+                </LanguageProvider>
             </body>
         </html>
     );
 }
+
 
