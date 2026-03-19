@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 import os
 
 _db = None
+_initialized = False
 
 def _get_db():
     global _db
@@ -66,3 +67,25 @@ def push_clear(node_id: str):
     }
     db.collection("edge_events").add(doc)
     print(f"[Firebase] Pushed: {node_id} — CLEAR")
+
+
+def push_stats(node_id: str, stats: dict):
+    """
+    Upsert real-time YOLO traffic statistics for a specific camera node.
+    Written to Firestore collection: intersection_stats/{node_id}
+    The Next.js dashboard listens to this via onSnapshot().
+    """
+    db = _get_db()
+    doc = {
+        "node_id":         node_id,
+        "node_name":       stats.get("node_name", node_id),
+        "vehicle_count":   stats.get("vehicle_count", 0),
+        "density_pct":     stats.get("density_pct", 0),
+        "class_breakdown": stats.get("class_breakdown", {}),
+        "updated_at":      datetime.now(timezone.utc).isoformat(),
+        "source":          "edge-ai-streamer",
+    }
+    # Use set() with merge=True so it creates or updates the document
+    db.collection("intersection_stats").document(node_id).set(doc, merge=True)
+    # Uncomment below for verbose logging:
+    # print(f"[Firebase] Stats pushed: {node_id} vehicles={stats.get('vehicle_count')} density={stats.get('density_pct')}%")
