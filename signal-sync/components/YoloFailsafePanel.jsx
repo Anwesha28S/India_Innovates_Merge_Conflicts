@@ -1,9 +1,12 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { CITY_NODES } from '@/lib/cityNodes';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { subscribeSignals } from '@/lib/firestore';
+import IntersectionModal from './IntersectionModal';
+
+const STREAM_BASE = 'http://localhost:8001';
 
 /* ─── Per-city camera sets (6 intersections each) ────────────────────────── */
 const CITY_CAMERAS = {
@@ -140,7 +143,8 @@ function OverrideBtn({ label, color, active, disabled, onClick }) {
 }
 
 /* ─── Camera card ────────────────────────────────────────────────────────── */
-function CameraCard({ cam, density, signal, timer, event, emergency, manualOverride, iotOverride, onManualGreen, onManualRed, onManualReset }) {
+function CameraCard({ cam, density, signal, timer, event, emergency, manualOverride, iotOverride, onManualGreen, onManualRed, onManualReset, onExpand }) {
+    const [streamError, setStreamError] = useState(false);
     // Signal priority: iotOverride > emergency > manualOverride > auto phase
     const isIot       = !!iotOverride;
     const displaySignal = isIot ? 'green' : (emergency || manualOverride || signal);
@@ -193,14 +197,31 @@ function CameraCard({ cam, density, signal, timer, event, emergency, manualOverr
                 </div>
             </div>
 
-            {/* Camera feed — live MJPEG from Python streamer */}
-            <div style={{ height: 90, background: '#050a14', borderRadius: 8, border: '1px solid rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img
-                    src="http://localhost:8001/video_feed"
-                    alt={`${cam.name} live feed`}
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85, zIndex: 0 }}
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                />
+            {/* Camera feed — live MJPEG from Python streamer (click to expand) */}
+            <div
+                onClick={onExpand}
+                title="Click to expand"
+                style={{ height: 90, background: '#050a14', borderRadius: 8, border: '1px solid rgba(255,255,255,0.04)', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            >
+                {streamError ? (
+                    <video
+                        src="/demo.mp4"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.75, zIndex: 0 }}
+                    />
+                ) : (
+                    <img
+                        src={`${STREAM_BASE}/video_feed/${cam.id}`}
+                        alt={`${cam.name} live feed`}
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85, zIndex: 0 }}
+                        onError={() => setStreamError(true)}
+                    />
+                )}
+                {/* Expand hint */}
+                <div style={{ position: 'absolute', top: 4, right: 5, zIndex: 4, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, padding: '1px 5px', fontSize: '0.38rem', color: streamError ? 'rgba(255,184,0,0.7)' : 'rgba(255,255,255,0.35)', fontFamily: 'monospace', letterSpacing: '0.05em', pointerEvents: 'none' }}>{streamError ? '⚠ DEMO' : '⛶ EXPAND'}</div>
                 {/* Scanline overlay */}
                 <div style={{ position: 'absolute', left: 0, right: 0, height: 1.5, background: 'rgba(0,245,255,0.38)', animation: 'scanline 2.2s linear infinite', boxShadow: '0 0 5px #00f5ff', zIndex: 2 }} />
                 {/* Grid overlay */}
@@ -294,8 +315,9 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
         iotOverride:   null,
     })));
 
-    const [log, setLog]       = useState([]);
-    const [paused, setPaused] = useState(false);
+    const [log, setLog]           = useState([]);
+    const [paused, setPaused]     = useState(false);
+    const [selectedCam, setSelectedCam] = useState(null); // index of clicked card
 
     const pausedRef   = useRef(false);
     const overrideRef = useRef(false);
@@ -437,6 +459,26 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
         addLog(`Awaiting live Firebase events from Python Edge Node...`);
     }, []);
 
+    /* ── Firestore intersection_stats listener (real YOLO density) ─────── */
+    useEffect(() => {
+        if (cityName !== 'Delhi') return; // stats only pushed for Delhi CAM-XX nodes
+        const unsubs = cameras.map((cam, i) => {
+            return onSnapshot(
+                doc(db, 'intersection_stats', cam.id),
+                (snap) => {
+                    if (!snap.exists()) return;
+                    const data = snap.data();
+                    setCams(prev => prev.map((c, idx) => idx === i
+                        ? { ...c, density: data.density_pct ?? c.density }
+                        : c
+                    ));
+                },
+                () => {} // silently ignore if not connected
+            );
+        });
+        return () => unsubs.forEach(u => u());
+    }, [cityName]);
+
     /* Listen for Firestore Signals (IoT Geofence Triggers) */
     useEffect(() => {
         const unsubscribe = subscribeSignals((signalsData) => {
@@ -535,9 +577,19 @@ export default function YoloFailsafePanel({ cityName = 'Delhi' }) {
                         onManualGreen={() => handleManualOverride(i, 'green')}
                         onManualRed={() => handleManualOverride(i, 'red')}
                         onManualReset={() => handleManualReset(i)}
+                        onExpand={() => setSelectedCam(i)}
                     />
                 ))}
             </div>
+
+            {/* ── Intersection Detail Modal ─────────────────────────────── */}
+            {selectedCam !== null && (
+                <IntersectionModal
+                    cam={cameras[selectedCam]}
+                    camState={cams[selectedCam]}
+                    onClose={() => setSelectedCam(null)}
+                />
+            )}
 
             {/* Cycle legend */}
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
