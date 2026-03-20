@@ -223,6 +223,7 @@ export default function DelhiMap({
     originName,
     destName,
     onRouteResult,
+    onRouteNodes,
     onNodeUpdate,
     onNodeAdvance,
     corridorNodeCount = 0,
@@ -293,6 +294,35 @@ export default function DelhiMap({
                         durationText: leg.duration_in_traffic?.text || leg.duration?.text || '',
                         durationSec: leg.duration_in_traffic?.value || leg.duration?.value || 0,
                     });
+
+                    // ── 2nd API call: reverse-geocode 5 evenly-spaced route points ──
+                    if (onRouteNodes && rawPath.length > 1) {
+                        const COUNT = 5;
+                        const sampled = [];
+                        for (let i = 1; i <= COUNT; i++) {
+                            const idx = Math.round((i / (COUNT + 1)) * (rawPath.length - 1));
+                            sampled.push(rawPath[Math.min(idx, rawPath.length - 1)]);
+                        }
+                        const geocoder = new window.google.maps.Geocoder();
+                        const PRIO = ['premise', 'route', 'sublocality_level_2', 'sublocality_level_1', 'sublocality', 'neighborhood', 'locality'];
+                        Promise.all(
+                            sampled.map((pt, i) =>
+                                new Promise(resolve => {
+                                    geocoder.geocode({ location: { lat: pt.lat, lng: pt.lng } }, (res, st) => {
+                                        let name = `Checkpoint ${i + 1}`;
+                                        if (st === 'OK' && res[0]) {
+                                            const comps = res[0].address_components;
+                                            for (const type of PRIO) {
+                                                const comp = comps.find(c => c.types.includes(type));
+                                                if (comp) { name = comp.long_name; break; }
+                                            }
+                                        }
+                                        resolve({ id: `RN${i + 1}`, name, pos: [pt.lat, pt.lng] });
+                                    });
+                                })
+                            )
+                        ).then(nodes => onRouteNodes(nodes));
+                    }
                 } else {
                     console.warn('Directions error:', status);
                 }

@@ -183,33 +183,76 @@ export function getNodesForCity(cityName) {
 /**
  * Pick N nodes from the city's list that are geographically distributed
  * along the straight-line path from origin to destination.
+ *
+ * Algorithm:
+ * 1. Project every city node onto the O→D vector to get a scalar t (0=origin, 1=dest).
+ * 2. Keep only nodes where 0 ≤ t ≤ 1 (between the two spots) AND whose
+ *    perpendicular distance from the line is ≤ MAX_PERP_DEG (~15 km).
+ * 3. Sort candidates by t so the list runs origin → destination.
+ * 4. From the sorted list pick `count` nodes that are most evenly spread
+ *    (one nearest to each of count ideal t-positions).
  */
 export function pickCorridorNodes(originLatLng, destLatLng, cityName, count = 5) {
     if (!originLatLng || !destLatLng) return [];
     const allNodes = getNodesForCity(cityName);
 
-    // Build evenly-spaced waypoints along the straight-line route
-    const waypoints = [];
-    for (let i = 1; i <= count; i++) {
-        const t = i / (count + 1);
-        waypoints.push({
-            lat: originLatLng.lat + (destLatLng.lat - originLatLng.lat) * t,
-            lng: originLatLng.lng + (destLatLng.lng - originLatLng.lng) * t,
-        });
+    const oLat = originLatLng.lat, oLng = originLatLng.lng;
+    const dLat = destLatLng.lat,   dLng = destLatLng.lng;
+
+    // Vector O→D
+    const vLat = dLat - oLat;
+    const vLng = dLng - oLng;
+    const lenSq = vLat * vLat + vLng * vLng;
+
+    // Maximum allowed perpendicular distance from the corridor line (in degrees).
+    // 0.15° ≈ 15–16 km — wide enough for any city corridor.
+    const MAX_PERP_DEG = 0.15;
+
+    // Project each node onto the O→D line
+    const candidates = [];
+    for (const node of allNodes) {
+        const nLat = node.pos[0], nLng = node.pos[1];
+
+        // t = dot(N-O, D-O) / |D-O|²  →  projection scalar (0=O, 1=D)
+        const t = lenSq > 0
+            ? ((nLat - oLat) * vLat + (nLng - oLng) * vLng) / lenSq
+            : 0;
+
+        // Only keep nodes that lie between origin and destination
+        if (t < 0 || t > 1) continue;
+
+        // Perpendicular distance from the line
+        const projLat = oLat + t * vLat;
+        const projLng = oLng + t * vLng;
+        const perpDist = Math.hypot(nLat - projLat, nLng - projLng);
+
+        if (perpDist > MAX_PERP_DEG) continue;
+
+        candidates.push({ node, t });
     }
 
-    // For each waypoint, pick the closest city node not already used
-    const used = new Set();
+    // Sort by position along the route (origin → destination)
+    candidates.sort((a, b) => a.t - b.t);
+
+    if (candidates.length === 0) return [];
+
+    // Pick `count` evenly-spread nodes from the sorted candidate list
     const picked = [];
-    for (const wp of waypoints) {
-        let best = null, bestDist = Infinity;
-        for (const node of allNodes) {
-            if (used.has(node.id)) continue;
-            const d = Math.hypot(node.pos[0] - wp.lat, node.pos[1] - wp.lng);
-            if (d < bestDist) { bestDist = d; best = node; }
+    const used = new Set();
+    for (let i = 0; i < count; i++) {
+        // Ideal t-position for the i-th node (spread evenly from 0 to 1)
+        const idealT = (i + 1) / (count + 1);
+        let best = null, bestDiff = Infinity;
+        for (const c of candidates) {
+            if (used.has(c.node.id)) continue;
+            const diff = Math.abs(c.t - idealT);
+            if (diff < bestDiff) { bestDiff = diff; best = c; }
         }
-        if (best) { used.add(best.id); picked.push(best); }
+        if (best) { used.add(best.node.id); picked.push({ node: best.node, t: best.t }); }
     }
 
-    return picked.slice(0, count);
+    // Re-sort picked nodes by t to guarantee origin→destination order in the output
+    picked.sort((a, b) => a.t - b.t);
+
+    return picked.map(p => p.node);
 }

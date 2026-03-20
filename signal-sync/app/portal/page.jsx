@@ -10,6 +10,7 @@ import { MAPS_LIBRARIES } from '@/components/DelhiMap';
 import { useAuth } from '@/components/AuthProvider';
 import { createCorridor, terminateCorridor, subscribeActiveCOrridors, setSignalStatus } from '@/lib/firestore';
 import { pickCorridorNodes } from '@/lib/cityNodes';
+import { useLanguage } from '@/components/LanguageProvider';
 
 const DelhiMap = dynamic(() => import('@/components/DelhiMap'), {
     ssr: false,
@@ -64,6 +65,7 @@ function getNodeStatus(nodeIdx, activeIdx) {
 export default function PortalPage() {
     const { user, userProfile, logout } = useAuth();
     const isAdmin = userProfile?.role === 'admin';
+    const { t } = useLanguage();
 
     const { isLoaded: mapsLoaded } = useJsApiLoader({
         id: 'google-map-script',
@@ -125,6 +127,12 @@ export default function PortalPage() {
     const handleRouteResult = useCallback((info) => {
         setRouteInfo(info);
         setEtaSec(info.durationSec || 0);
+    }, []);
+
+    // Receives real named junction nodes from DelhiMap's reverse-geocode call
+    const handleRouteNodes = useCallback((nodes) => {
+        setCorridorNodes(nodes);
+        setActiveNodeIdx(0);
     }, []);
 
     // ── Use My Location ───────────────────────────────────────────────────────
@@ -284,8 +292,11 @@ export default function PortalPage() {
         setCreating(true);
 
         // ── Compute corridor nodes using city-specific data ──────────────────
-        const nodes = pickCorridorNodes(originLatLng, destLatLng, city, 5);
-        setCorridorNodes(nodes);
+        // Use reverse-geocoded road nodes if already available, else fall back to city nodes
+        const nodes = corridorNodes.length > 0
+            ? corridorNodes
+            : pickCorridorNodes(originLatLng, destLatLng, city, 5);
+        if (corridorNodes.length === 0) setCorridorNodes(nodes);
         setActiveNodeIdx(0);
 
         try {
@@ -358,8 +369,8 @@ export default function PortalPage() {
             {/* ── Nav ── */}
             <nav className="relative z-10 flex items-center justify-between px-10 py-3.5 bg-bg-deep/95 border-b border-white/5 backdrop-blur-xl">
                 <Link href="/" className="flex items-center gap-2.5 font-extrabold text-xl no-underline text-white">
-                    <div className="w-8 h-8 rounded-[6px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan">⬡</div>
-                    <span><span className="text-accent-cyan">Signal</span>Sync</span>
+                    <div className="w-8 h-8 rounded-[6px] bg-[#1e3a5f] border border-sky-500/30 flex items-center justify-center text-sky-400">⬡</div>
+                    <span><span className="text-sky-400">Signal</span>Sync</span>
                 </Link>
                 <div className="flex items-center gap-2.5">
                     {user ? (
@@ -457,8 +468,8 @@ export default function PortalPage() {
                                 ) : <div className="flex flex-col gap-1.5"><label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Destination</label><input disabled className="input-field opacity-50" placeholder="Loading Google Maps..." /></div>}
 
                                 <button onClick={calcRoute} disabled={calculating || !canCalc}
-                                    className="w-full py-3 rounded-xl font-bold bg-gradient-to-br from-accent-cyan to-[#0099cc] text-black disabled:opacity-50 hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] transition-all font-sans cursor-pointer">
-                                    {calculating ? 'Routing...' : 'Get Best Route'}
+                                    className="w-full py-3 rounded-xl font-bold bg-sky-500 hover:bg-sky-400 text-white disabled:opacity-50 transition-all font-sans cursor-pointer">
+                                    {calculating ? t('routing') : t('getBestRoute')}
                                 </button>
                             </div>
 
@@ -471,72 +482,80 @@ export default function PortalPage() {
                                             <div className="text-xl font-extrabold font-mono text-accent-amber">{routeInfo.durationText}</div>
                                             <div className="text-xs text-text-secondary mt-1">{routeInfo.distanceText}</div>
                                         </div>
-                                        <div className="flex-1 bg-accent-green/5 border border-accent-green/30 rounded-xl p-3.5 text-center">
+                                        {/* <div className="flex-1 bg-accent-green/5 border border-accent-green/30 rounded-xl p-3.5 text-center">
                                             <div className="text-[0.65rem] text-text-muted uppercase mb-1">SignalSync Corridor</div>
                                             <div className="text-xl font-extrabold font-mono text-accent-green">~{Math.round((routeInfo.durationSec * 0.6) / 60)}m</div>
                                             <div className="text-xs text-text-secondary mt-1">Zero stops</div>
-                                        </div>
+                                        </div> */}
                                     </div>
 
                                     {/* Corridor creation — auth + verification required */}
                                     {user ? (
                                         (isAdmin || userProfile?.verified) ? (
-                                        <>
-                                            <div className="flex gap-2">
-                                                {[['ambulance', 'Ambulance'], ['fire', 'Fire Truck'], ['vvip', 'VVIP']].map(([v, l]) => (
-                                                    <button key={v} onClick={() => setCorridorType(v)}
-                                                        className={`flex-1 py-2 rounded-xl border text-sm transition-all font-sans cursor-pointer ${corridorType === v ? 'bg-accent-cyan/10 border-accent-cyan/35 text-accent-cyan' : 'bg-white/[0.03] border-white/5 text-text-secondary hover:border-accent-cyan/25'}`}>
-                                                        {l}
-                                                    </button>
-                                                ))}
-                                            </div>
-
-                                            {isAdmin && (
-                                                <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[0.78rem] font-semibold text-accent-red uppercase tracking-wide">Vehicle # Override (Admin)</label>
-                                                    <input className="input-field font-mono" value={adminVehicle} onChange={e => setAdminVehicle(e.target.value)} placeholder="e.g. AMB-099" />
-                                                </div>
-                                            )}
-
-                                            {dupError && (
-                                                <div className="bg-accent-amber/10 border border-accent-amber/30 rounded-xl p-3 text-sm text-accent-amber">{dupError}</div>
-                                            )}
-
-                                            {!corridorActive ? (
-                                                <button onClick={initiateWave} disabled={creating}
-                                                    className="w-full py-4 rounded-xl font-bold text-base bg-gradient-to-br from-accent-green to-[#00cc7a] text-black shadow-[0_0_20px_rgba(0,255,157,0.3)] hover:shadow-[0_0_30px_rgba(0,255,157,0.6)] disabled:opacity-60 transition-all font-sans cursor-pointer">
-                                                    {creating ? 'Activating...' : 'Initiate Green Wave'}
-                                                </button>
-                                            ) : (
-                                                <div className="flex flex-col gap-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="w-2.5 h-2.5 rounded-full bg-accent-green animate-pulse" />
-                                                        <span className="text-sm font-bold text-accent-green">GREEN WAVE ACTIVE</span>
-                                                        <span className="ml-auto text-xs font-mono text-accent-cyan">{etaStr}</span>
-                                                    </div>
-                                                    {corridorNodes.length > 0 && (
-                                                        <CorridorStatusBox nodes={corridorNodes} activeIdx={activeNodeIdx} eta={etaStr} stops={0} />
-                                                    )}
-                                                    {/* Navigation starts here — physically travelling */}
-                                                    {!navigationMode ? (
-                                                        <button onClick={startNavigation}
-                                                            className="w-full py-3 rounded-xl font-bold bg-gradient-to-br from-[#4285F4] to-[#1a73e8] text-white hover:shadow-[0_0_20px_rgba(66,133,244,0.4)] transition-all font-sans cursor-pointer flex items-center justify-center gap-2">
-                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg>
-                                                            Start Live GPS Tracking
+                                            <>
+                                                <div className="flex gap-2">
+                                                    {[['ambulance', 'Ambulance'], ['fire', 'Fire Truck'], ['vvip', 'VVIP']].map(([v, l]) => (
+                                                        <button key={v} onClick={() => setCorridorType(v)}
+                                                            className={`flex-1 py-2 rounded-xl border text-sm transition-all font-sans cursor-pointer ${corridorType === v ? 'bg-accent-cyan/10 border-accent-cyan/35 text-accent-cyan' : 'bg-white/[0.03] border-white/5 text-text-secondary hover:border-accent-cyan/25'}`}>
+                                                            {l}
                                                         </button>
-                                                    ) : (
-                                                        <div className="flex gap-2">
-                                                            <div className="flex-1 flex items-center gap-2 bg-[#4285F4]/10 border border-[#4285F4]/30 rounded-xl px-4 py-2.5">
-                                                                <span className="w-2 h-2 rounded-full bg-[#4285F4] animate-pulse" />
-                                                                <span className="text-sm font-bold text-[#4285F4]">📍 GPS Tracking Live</span>
-                                                            </div>
-                                                            <button onClick={stopNavigation}
-                                                                className="px-4 py-2.5 rounded-xl text-xs font-bold text-accent-red bg-accent-red/10 border border-accent-red/30 font-sans cursor-pointer">Stop</button>
-                                                        </div>
-                                                    )}
+                                                    ))}
                                                 </div>
-                                            )}
-                                        </>
+
+                                                {isAdmin && (
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <label className="text-[0.78rem] font-semibold text-accent-red uppercase tracking-wide">Vehicle # Override (Admin)</label>
+                                                        <input className="input-field font-mono" value={adminVehicle} onChange={e => setAdminVehicle(e.target.value)} placeholder="e.g. AMB-099" />
+                                                    </div>
+                                                )}
+
+                                                {dupError && (
+                                                    <div className="bg-accent-amber/10 border border-accent-amber/30 rounded-xl p-3 text-sm text-accent-amber">{dupError}</div>
+                                                )}
+
+                                                {!corridorActive ? (
+                                                    <button onClick={initiateWave} disabled={creating}
+                                                        className="w-full py-4 rounded-xl font-bold text-base bg-emerald-500 hover:bg-emerald-400 text-white disabled:opacity-60 transition-all font-sans cursor-pointer">
+                                                        {creating ? t('activating') : t('initiateWave')}
+                                                    </button>
+                                                ) : (
+                                                    <div className="flex flex-col gap-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="w-2.5 h-2.5 rounded-full bg-accent-green animate-pulse" />
+                                                            <span className="text-sm font-bold text-accent-green">GREEN WAVE ACTIVE</span>
+                                                            <span className="ml-auto text-xs font-mono text-accent-cyan">{etaStr}</span>
+                                                        </div>
+                                                        {routeInfo && (
+                                                            <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 text-center">
+                                                                <div className="text-base font-extrabold text-emerald-400 mb-0.5">
+                                                                    ⚡ {t('savingMinutes', Math.round((routeInfo.durationSec || 0) * 0.4 / 60))}
+                                                                </div>
+                                                                <div className="text-xs text-text-muted">{t('priorityCleared')}</div>
+                                                            </div>
+                                                        )}
+                                                        {corridorNodes.length > 0 && (
+                                                            <CorridorStatusBox nodes={corridorNodes} activeIdx={activeNodeIdx} eta={etaStr} stops={0} />
+                                                        )}
+                                                        {/* Navigation starts here — physically travelling */}
+                                                        {!navigationMode ? (
+                                                            <button onClick={startNavigation}
+                                                                className="w-full py-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all font-sans cursor-pointer flex items-center justify-center gap-2">
+                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg>
+                                                                {t('startGPS')}
+                                                            </button>
+                                                        ) : (
+                                                            <div className="flex gap-2">
+                                                                <div className="flex-1 flex items-center gap-2 bg-[#4285F4]/10 border border-[#4285F4]/30 rounded-xl px-4 py-2.5">
+                                                                    <span className="w-2 h-2 rounded-full bg-[#4285F4] animate-pulse" />
+                                                                    <span className="text-sm font-bold text-[#4285F4]">📍 GPS Tracking Live</span>
+                                                                </div>
+                                                                <button onClick={stopNavigation}
+                                                                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-accent-red bg-accent-red/10 border border-accent-red/30 font-sans cursor-pointer">Stop</button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </>
                                         ) : (
                                             /* ── Unverified user banner ── */
                                             <div className="bg-accent-amber/[0.06] border border-accent-amber/30 rounded-xl p-5 text-center">
@@ -601,6 +620,7 @@ export default function PortalPage() {
                                 userLocation={userLocation}
                                 navigationMode={navigationMode}
                                 onIotTrigger={handleIotTrigger}
+                                onRouteNodes={handleRouteNodes}
                             />
                         </div>
 

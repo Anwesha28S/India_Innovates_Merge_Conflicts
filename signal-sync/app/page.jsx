@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Badge from '@/components/Badge';
 import StatusDot from '@/components/StatusDot';
+import { useLanguage } from '@/components/LanguageProvider';
 
 /* ── Stat counter hook ── */
 function useCountUp(target, duration = 1800) {
@@ -343,6 +344,7 @@ function FaqSection() {
 
 /* ── Main Page Export ── */
 export default function HomePage() {
+    const { t } = useLanguage();
     return (
         <>
             <Navbar />
@@ -358,14 +360,14 @@ export default function HomePage() {
                             <StatusDot color="green" /><span>AI Traffic System — Active</span><Badge variant="cyan">v1.0</Badge>
                         </div>
                         <h1 className="text-5xl font-black leading-[1.05] tracking-[-1.5px] mb-5 animate-fade-in-up">
-                            Intelligent Traffic<br />That <span className="grad-text">Saves Lives</span><br />in Real Time
+                            {t('heroTitle') || <>Intelligent Traffic<br />That <span className="grad-text">Saves Lives</span><br />in Real Time</>}
                         </h1>
                         <p className="text-[1.05rem] text-text-secondary leading-relaxed max-w-[520px] mb-8">
-                            SignalSync fuses AI vision, predictive preemption, and verified green corridors to clear the path for ambulances, secure VVIP convoys, and optimize every intersection — automatically.
+                            {t('heroDesc')}
                         </p>
                         <div className="flex flex-wrap gap-3 mb-12">
-                            <a href="#pillars" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-accent-cyan text-black shadow-[0_0_20px_rgba(0,245,255,0.3)] hover:shadow-[0_0_30px_rgba(0,245,255,0.6)] hover:-translate-y-px transition-all">Explore The Solution →</a>
-                            <Link href="/dashboard" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-px transition-all no-underline text-text-primary">Live Dashboard</Link>
+                            <a href="#pillars" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-sky-500 hover:bg-sky-400 text-white hover:-translate-y-px transition-all">{t('exploreSolution')}</a>
+                            <Link href="/dashboard" className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-base font-bold bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-px transition-all no-underline text-text-primary">{t('liveDashboard')}</Link>
                         </div>
                         {/* Stats bar */}
                         <div className="flex flex-wrap bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden divide-x divide-white/5">
