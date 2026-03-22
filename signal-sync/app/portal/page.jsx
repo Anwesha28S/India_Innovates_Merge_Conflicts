@@ -9,7 +9,7 @@ import { useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { MAPS_LIBRARIES } from '@/components/DelhiMap';
 import { useAuth } from '@/components/AuthProvider';
 import { createCorridor, terminateCorridor, subscribeActiveCOrridors, setSignalStatus } from '@/lib/firestore';
-import { pickCorridorNodes } from '@/lib/cityNodes';
+import { pickCorridorNodes, nodesOnPolyline } from '@/lib/cityNodes';
 import { useLanguage } from '@/components/LanguageProvider';
 
 const DelhiMap = dynamic(() => import('@/components/DelhiMap'), {
@@ -137,11 +137,16 @@ export default function PortalPage() {
         setEtaSec(info.durationSec || 0);
     }, []);
 
-    // Receives real named junction nodes from DelhiMap's reverse-geocode call
+    // Receives matched city signal nodes from DelhiMap (nodesOnPolyline result).
+    // Guard: do NOT overwrite nodes if corridor is already active — that
+    // would reset activeNodeIdx and break live navigation.
     const handleRouteNodes = useCallback((nodes) => {
-        setCorridorNodes(nodes);
-        setActiveNodeIdx(0);
-    }, []);
+        if (corridorActive) return;  // never overwrite during live corridor
+        if (nodes.length > 0) {
+            setCorridorNodes(nodes);
+            setActiveNodeIdx(0);
+        }
+    }, [corridorActive]);
 
     // ── Use My Location ───────────────────────────────────────────────────────
     function useMyLocation() {
@@ -299,11 +304,17 @@ export default function PortalPage() {
         setDupError('');
         setCreating(true);
 
-        // ── Compute corridor nodes using city-specific data ──────────────────
-        // Use reverse-geocoded road nodes if already available, else fall back to city nodes
+        // ── Compute corridor nodes from route polyline or straight-line fallback ──
+        // routePolyline is set by DelhiMap via onRouteNodes as soon as the route loads.
+        // We use ALL nodes found within 350m of the actual route — no hardcoded count.
         const nodes = corridorNodes.length > 0
             ? corridorNodes
-            : pickCorridorNodes(originLatLng, destLatLng, city, 5);
+            : nodesOnPolyline(
+                // Approximate the route with a straight-line two-point polyline as fallback
+                [{ lat: originLatLng.lat, lng: originLatLng.lng }, { lat: destLatLng.lat, lng: destLatLng.lng }],
+                city,
+                15000  // 15km wide corridor for straight-line fallback
+              );
         if (corridorNodes.length === 0) setCorridorNodes(nodes);
         setActiveNodeIdx(0);
 
@@ -414,20 +425,20 @@ export default function PortalPage() {
                 <div className="flex items-center gap-2.5">
                     {user ? (
                         <>
-                            {isAdmin && <Badge variant="red">Administrator</Badge>}
+                            {isAdmin && <Badge variant="red">{t('administratorBadge')}</Badge>}
                             <Badge variant="green"><StatusDot color="green" className="mr-1" />{userProfile?.name || user.email}</Badge>
                             {userProfile?.vehicleNumber && <Badge variant="violet">{userProfile.vehicleNumber}</Badge>}
                         </>
-                    ) : <span className="text-text-muted text-xs">Viewing as Guest</span>}
+                    ) : <span className="text-text-muted text-xs">{t('viewingAsGuest')}</span>}
                 </div>
                 <div className="flex items-center gap-2">
-                    <Link href="/" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">Home</Link>
-                    <Link href="/dashboard" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">Dashboard</Link>
-                    <Link href="/routes" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">Route Finder</Link>
-                    {isAdmin && <Link href="/admin" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent-red/15 border border-accent-red/30 text-accent-red no-underline">Admin</Link>}
+                    <Link href="/" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">{t('homeLink')}</Link>
+                    <Link href="/dashboard" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">{t('dashboardLink')}</Link>
+                    <Link href="/routes" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">{t('routeFinderLink')}</Link>
+                    {isAdmin && <Link href="/admin" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent-red/15 border border-accent-red/30 text-accent-red no-underline">{t('adminLink')}</Link>}
                     {user
-                        ? <button onClick={logout} className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[rgba(255,59,92,0.15)] text-accent-red border border-accent-red/30 font-sans cursor-pointer">Logout</button>
-                        : <Link href="/auth/login" className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan no-underline">Sign In</Link>
+                        ? <button onClick={logout} className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[rgba(255,59,92,0.15)] text-accent-red border border-accent-red/30 font-sans cursor-pointer">{t('logoutLink')}</button>
+                        : <Link href="/auth/login" className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan no-underline">{t('signIn')}</Link>
                     }
                 </div>
             </nav>
@@ -449,7 +460,7 @@ export default function PortalPage() {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                         <span className="w-2 h-2 rounded-full bg-accent-green animate-pulse" />
-                        <span className="text-xs text-text-muted">{cityCorridors.length} active in {city}</span>
+                        <span className="text-xs text-text-muted">{cityCorridors.length} {t('activeIn')} {city}</span>
                     </div>
                 </div>
 
@@ -488,7 +499,7 @@ export default function PortalPage() {
                                     {originName === '📍 My Current Location' && (
                                         <div className="text-[0.7rem] text-[#4285F4] font-semibold flex items-center gap-1">
                                             <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] animate-pulse inline-block" />
-                                            Using GPS as origin
+                                            {t('usingGPSOrigin')}
                                         </div>
                                     )}
                                     {gpsError && <div className="text-[0.7rem] text-accent-red">{gpsError}</div>}
@@ -533,7 +544,7 @@ export default function PortalPage() {
                                         (isAdmin || userProfile?.verified) ? (
                                             <>
                                                 <div className="flex gap-2">
-                                                    {[['ambulance', 'Ambulance'], ['fire', 'Fire Truck'], ['vvip', 'VVIP']].map(([v, l]) => (
+                                                    {[['ambulance', t('ambulanceLabel')], ['fire', t('fireTruckLabel')], ['vvip', t('vvipLabel')]].map(([v, l]) => (
                                                         <button key={v} onClick={() => setCorridorType(v)}
                                                             className={`flex-1 py-2 rounded-xl border text-sm transition-all font-sans cursor-pointer ${corridorType === v ? 'bg-accent-cyan/10 border-accent-cyan/35 text-accent-cyan' : 'bg-white/[0.03] border-white/5 text-text-secondary hover:border-accent-cyan/25'}`}>
                                                             {l}
@@ -546,7 +557,7 @@ export default function PortalPage() {
                                                     {corridorType === 'ambulance' && (
                                                         <>
                                                             <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">Patient Severity</label>
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">{t('patientSeverity')}</label>
                                                                 <select value={patientSeverity} onChange={e => setPatientSeverity(e.target.value)} className="input-field py-2 text-sm bg-[#050c18] text-white">
                                                                     <option value="Stable">Stable</option>
                                                                     <option value="Serious">Serious</option>
@@ -554,7 +565,7 @@ export default function PortalPage() {
                                                                 </select>
                                                             </div>
                                                             <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">Dispatch / Hospital Ref ID (Optional)</label>
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">{t('dispatchRef')}</label>
                                                                 <input value={dispatchRef} onChange={e => setDispatchRef(e.target.value)} placeholder="e.g. HOSP-1029" className="input-field py-2 text-sm" />
                                                             </div>
                                                         </>
@@ -562,7 +573,7 @@ export default function PortalPage() {
                                                     {corridorType === 'fire' && (
                                                         <>
                                                             <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">Fire Type</label>
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">{t('fireType')}</label>
                                                                 <select value={fireType} onChange={e => setFireType(e.target.value)} className="input-field py-2 text-sm bg-[#050c18] text-white">
                                                                     <option value="Residential">Residential</option>
                                                                     <option value="Commercial">Commercial</option>
@@ -571,7 +582,7 @@ export default function PortalPage() {
                                                                 </select>
                                                             </div>
                                                             <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">Severity Level</label>
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">{t('severityLevel')}</label>
                                                                 <select value={fireSeverity} onChange={e => setFireSeverity(e.target.value)} className="input-field py-2 text-sm bg-[#050c18] text-white">
                                                                     <option value="Low">Low</option>
                                                                     <option value="Medium">Medium</option>
@@ -583,7 +594,7 @@ export default function PortalPage() {
                                                     {corridorType === 'vvip' && (
                                                         <>
                                                             <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">VVIP Level</label>
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">{t('vvipLevel')}</label>
                                                                 <select value={vvipLevel} onChange={e => setVvipLevel(e.target.value)} className="input-field py-2 text-sm bg-[#050c18] text-white">
                                                                     <option value="Minister">Minister</option>
                                                                     <option value="Security movement">Security movement</option>
@@ -591,7 +602,7 @@ export default function PortalPage() {
                                                                 </select>
                                                             </div>
                                                             <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">Time Sensitivity</label>
+                                                                <label className="text-[0.75rem] font-semibold text-text-secondary uppercase">{t('timeSensitivity')}</label>
                                                                 <select value={timeSensitivity} onChange={e => setTimeSensitivity(e.target.value)} className="input-field py-2 text-sm bg-[#050c18] text-white">
                                                                     <option value="Standard">Standard</option>
                                                                     <option value="High">High (Immediate)</option>
@@ -646,7 +657,7 @@ export default function PortalPage() {
                                                             <div className="flex gap-2">
                                                                 <div className="flex-1 flex items-center gap-2 bg-[#4285F4]/10 border border-[#4285F4]/30 rounded-xl px-4 py-2.5">
                                                                     <span className="w-2 h-2 rounded-full bg-[#4285F4] animate-pulse" />
-                                                                    <span className="text-sm font-bold text-[#4285F4]">📍 GPS Tracking Live</span>
+                                                                    <span className="text-sm font-bold text-[#4285F4]">{t('gpsTrackingLive')}</span>
                                                                 </div>
                                                                 <button onClick={stopNavigation}
                                                                     className="px-4 py-2.5 rounded-xl text-xs font-bold text-accent-red bg-accent-red/10 border border-accent-red/30 font-sans cursor-pointer">Stop</button>
@@ -671,11 +682,11 @@ export default function PortalPage() {
                                         )
                                     ) : (
                                         <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 text-center">
-                                            <div className="text-sm font-semibold mb-1">Want a Green Corridor?</div>
-                                            <p className="text-text-muted text-xs mb-3">Sign in to activate a priority green signal corridor for ambulances, fire trucks &amp; VVIP convoys.</p>
+                                            <div className="text-sm font-semibold mb-1">{t('wantCorridor')}</div>
+                                            <p className="text-text-muted text-xs mb-3">{t('corridorSignInDesc')}</p>
                                             <div className="flex gap-2 justify-center">
-                                                <Link href="/auth/login" className="px-4 py-2 rounded-xl font-bold text-sm bg-accent-green text-black no-underline">Sign In</Link>
-                                                <Link href="/auth/register" className="px-4 py-2 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-white no-underline">Register</Link>
+                                                <Link href="/auth/login" className="px-4 py-2 rounded-xl font-bold text-sm bg-accent-green text-black no-underline">{t('signIn')}</Link>
+                                                <Link href="/auth/register" className="px-4 py-2 rounded-xl font-bold text-sm bg-white/5 border border-white/10 text-white no-underline">{t('register')}</Link>
                                             </div>
                                         </div>
                                     )}
@@ -691,11 +702,11 @@ export default function PortalPage() {
                         <div className="bg-bg-card border border-white/5 rounded-xl p-5">
                             <div className="flex justify-between items-center mb-3">
                                 <div>
-                                    <h3 className="text-base font-bold">{city} Traffic Map</h3>
+                                    <h3 className="text-base font-bold">{t('trafficMapTitle', city) || `${city} Traffic Map`}</h3>
                                     <p className="text-text-secondary text-xs">
-                                        {navigationMode ? '📍 Live GPS Navigation Active' :
+                                        {navigationMode ? t('liveNavActive') :
                                             showCorridor && originName && destName ? `${originName} → ${destName}` :
-                                                'Select origin and destination above'}
+                                                t('selectOriginDest')}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -710,6 +721,7 @@ export default function PortalPage() {
                                 destLatLng={destLatLng}
                                 originName={originName}
                                 destName={destName}
+                                cityName={city}
                                 onRouteResult={handleRouteResult}
                                 onNodeUpdate={handleArrival}
                                 onNodeAdvance={handleNodeAdvance}
@@ -725,18 +737,18 @@ export default function PortalPage() {
                         {/* Active corridors — THIS CITY ONLY */}
                         <div className="bg-bg-card border border-white/5 rounded-xl p-5">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-base font-bold">Active Corridors — {city}</h3>
+                                <h3 className="text-base font-bold">{t('activeCorridors', city) || `${t('activeCorridorsHdr')} — ${city}`}</h3>
                                 <Badge variant="green">
                                     <span className="w-1.5 h-1.5 rounded-full bg-accent-green inline-block mr-1.5 animate-pulse" />
-                                    {cityCorridors.length} Active
+                                    {cityCorridors.length} {t('activeCors')}
                                 </Badge>
                             </div>
 
                             {cityCorridors.length === 0 ? (
                                 <div className="text-center py-6 border border-white/5 border-dashed rounded-xl">
                                     <div className="text-2xl mb-2">🟢</div>
-                                    <p className="text-text-muted text-sm">No active corridors in {city} right now.</p>
-                                    {!user && <p className="text-text-muted text-xs mt-1">Sign in to create one for emergency vehicles.</p>}
+                                    <p className="text-text-muted text-sm">{t('noActiveCorridors', city)}</p>
+                                    {!user && <p className="text-text-muted text-xs mt-1">{t('signInCreate')}</p>}
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-3">
@@ -756,7 +768,7 @@ export default function PortalPage() {
                                                         {canTerminate && (
                                                             <button onClick={() => handleTerminate(c.id)}
                                                                 className="text-[0.6rem] font-bold text-accent-red border border-accent-red/30 rounded-lg px-2 py-0.5 bg-accent-red/10 hover:bg-accent-red/20 font-sans cursor-pointer">
-                                                                TERMINATE
+                                                                {t('terminate')}
                                                             </button>
                                                         )}
                                                     </div>
@@ -768,7 +780,7 @@ export default function PortalPage() {
                                                     </div>
                                                 )}
                                                 <div className="flex items-center gap-3 mt-2">
-                                                    <span className="text-[0.65rem] text-text-muted">By {c.creatorName}</span>
+                                                    <span className="text-[0.65rem] text-text-muted">{t('byLabel')} {c.creatorName}</span>
                                                     {c.distanceText && <span className="text-[0.65rem] text-accent-cyan font-mono">{c.distanceText}</span>}
                                                     {c.durationText && <span className="text-[0.65rem] text-accent-amber font-mono">{c.durationText}</span>}
                                                 </div>

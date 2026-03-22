@@ -6,6 +6,7 @@ import StatusDot from '@/components/StatusDot';
 import CorridorStatusBox from '@/components/CorridorStatusBox';
 import YoloFailsafePanel from '@/components/YoloFailsafePanel';
 import { CITY_NODES } from '@/lib/cityNodes';
+import { useLanguage } from '@/components/LanguageProvider';
 
 /* ── Build node rows from real city intersection data ── */
 function buildCityNodes(cityName) {
@@ -70,7 +71,7 @@ function NodeRow({ node, onClick }) {
 }
 
 /* ── Node Detail Panel (slide-up) ── */
-function NodeDetail({ node, onClose }) {
+function NodeDetail({ node, onClose, t }) {
     if (!node) return null;
     const ns = Math.min(node.density + 10, 99);
     const ew = Math.max(100 - node.density - 10, 5);
@@ -80,20 +81,20 @@ function NodeDetail({ node, onClose }) {
                 <div>
                     <div className="flex items-center gap-2 mb-1">
                         <Badge variant="cyan">{node.id}</Badge>
-                        {node.corridor && <Badge variant="green">Corridor Active</Badge>}
-                        {node.emergency && <Badge variant="red">Emergency</Badge>}
+                        {node.corridor && <Badge variant="green">{t('corridorActive')}</Badge>}
+                        {node.emergency && <Badge variant="red">{t('emergencyLabel')}</Badge>}
                     </div>
                     <h3 className="font-bold text-base">{node.name}</h3>
                 </div>
                 <div className="flex gap-2">
-                    <Link href="/portal" className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent-cyan text-black no-underline">Activate Corridor</Link>
+                    <Link href="/portal" className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent-cyan text-black no-underline">{t('activateCorridor')}</Link>
                     <button onClick={onClose} className="px-2.5 py-1.5 rounded-lg text-xs bg-white/5 text-text-muted hover:text-white font-sans cursor-pointer">✕</button>
                 </div>
             </div>
 
             {/* Traffic flow bars */}
             <div className="grid grid-cols-2 gap-4 mb-4">
-                {[['N-S Flow', ns, 'amber'], ['E-W Flow', ew, 'green']].map(([label, val, color]) => (
+                {[[t('nsFlow'), ns, 'amber'], [t('ewFlow'), ew, 'green']].map(([label, val, color]) => (
                     <div key={label}>
                         <div className="flex justify-between text-xs mb-1.5"><span className="text-text-muted">{label}</span><span className="font-bold font-mono">{val}%</span></div>
                         <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -105,7 +106,7 @@ function NodeDetail({ node, onClose }) {
 
             {/* Real-time density gauge */}
             <div className="mb-4">
-                <div className="flex justify-between text-xs mb-1.5"><span className="text-text-muted">Traffic Density</span><span className={`font-bold font-mono ${densityColor(node.density)}`}>{node.density}%</span></div>
+                <div className="flex justify-between text-xs mb-1.5"><span className="text-text-muted">{t('trafficDensity')}</span><span className={`font-bold font-mono ${densityColor(node.density)}`}>{node.density}%</span></div>
                 <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${densityBarColor(node.density)} transition-all duration-700`} style={{ width: `${node.density}%` }} />
                 </div>
@@ -114,10 +115,10 @@ function NodeDetail({ node, onClose }) {
             {/* Signal + camera stats */}
             <div className="grid grid-cols-4 gap-3 text-xs">
                 {[
-                    ['Phase', 'N-S GREEN', 'text-accent-green'],
-                    ['Cycle', `${Math.round(15 + node.density * 0.4)}s`, 'text-text-primary'],
-                    ['Camera', 'Online', 'text-accent-green'],
-                    ['Detections', `${(800 + Math.round(node.density * 15)).toLocaleString()}`, 'text-accent-cyan'],
+                    [t('phase'), 'N-S GREEN', 'text-accent-green'],
+                    [t('cycle'), `${Math.round(15 + node.density * 0.4)}s`, 'text-text-primary'],
+                    [t('camera'), t('online'), 'text-accent-green'],
+                    [t('detections'), `${(800 + Math.round(node.density * 15)).toLocaleString()}`, 'text-accent-cyan'],
                 ].map(([l, v, c]) => (
                     <div key={l}><div className="text-text-muted text-[0.62rem] uppercase mb-1">{l}</div><div className={`font-bold ${c}`}>{v}</div></div>
                 ))}
@@ -127,11 +128,11 @@ function NodeDetail({ node, onClose }) {
 }
 
 /* ── Live Corridor Card ── */
-function CorridorCard({ corridor, onTerminate }) {
+function CorridorCard({ corridor, onTerminate, t }) {
     const [elapsed, setElapsed] = useState(0);
     useEffect(() => {
-        const t = setInterval(() => setElapsed(s => s + 1), 1000);
-        return () => clearInterval(t);
+        const ti = setInterval(() => setElapsed(s => s + 1), 1000);
+        return () => clearInterval(ti);
     }, []);
     const mins = Math.floor(elapsed / 60);
     const secs = (elapsed % 60).toString().padStart(2, '0');
@@ -145,45 +146,38 @@ function CorridorCard({ corridor, onTerminate }) {
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse" />
-                    <span className="text-[0.62rem] font-bold uppercase tracking-widest text-accent-cyan">Live Corridor</span>
+                    <span className="text-[0.62rem] font-bold uppercase tracking-widest text-accent-cyan">{t('liveCorridor')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="text-[0.62rem] font-mono text-text-muted">{mins}m {secs}s</span>
-                    <button onClick={onTerminate} className="text-[0.58rem] font-bold text-accent-red border border-accent-red/30 rounded-lg px-2 py-0.5 bg-accent-red/10 hover:bg-accent-red/20 font-sans cursor-pointer">TERMINATE</button>
+                    <button onClick={onTerminate} className="text-[0.58rem] font-bold text-accent-red border border-accent-red/30 rounded-lg px-2 py-0.5 bg-accent-red/10 hover:bg-accent-red/20 font-sans cursor-pointer">{t('terminate')}</button>
                 </div>
             </div>
 
             <div className="flex items-center gap-2 mb-3">
                 <Badge variant="red">{corridor.vehicleId || 'AMB-042'}</Badge>
-                <Badge variant="green">ACTIVE</Badge>
+                <Badge variant="green">{t('activeCors')}</Badge>
                 <span className="text-[0.65rem] text-text-muted capitalize ml-auto">{corridor.corridorType || 'ambulance'}</span>
             </div>
 
             <div className="flex items-center gap-2 mb-1">
                 <span className="w-2 h-2 rounded-full bg-accent-cyan flex-shrink-0" />
-                <span className="text-xs text-text-secondary truncate">{corridor.origin || 'Origin'}</span>
+                <span className="text-xs text-text-secondary truncate">{corridor.origin || t('origin')}</span>
             </div>
             <div className="w-px h-3 bg-white/10 ml-[3px] my-0.5" />
             <div className="flex items-center gap-2 mb-3">
                 <span className="w-2 h-2 rounded-full bg-accent-violet flex-shrink-0" />
-                <span className="text-xs text-text-secondary truncate">{corridor.dest || 'Destination'}</span>
+                <span className="text-xs text-text-secondary truncate">{corridor.dest || t('destination')}</span>
             </div>
 
-            {/* Live intersection status box */}
             {nodes.length > 0 && (
                 <div className="mb-3">
-                    <CorridorStatusBox
-                        nodes={nodes}
-                        activeIdx={activeNodeIdx}
-                        eta={corridor.duration || '—'}
-                        stops={0}
-                    />
+                    <CorridorStatusBox nodes={nodes} activeIdx={activeNodeIdx} eta={corridor.duration || '—'} stops={0} />
                 </div>
             )}
 
-            {/* View real-time updates in Portal */}
             <Link href={`/portal?corridorId=${corridor.id}`} className="flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-semibold bg-white/5 border border-white/10 text-text-primary no-underline hover:border-accent-cyan/30 hover:text-accent-cyan transition-all">
-                🗺 View Real-Time Updates in Portal →
+                {t('viewRealTimePortal')}
             </Link>
         </div>
     );
@@ -213,6 +207,7 @@ function DemoCorridorStatus({ etaStr, cityName }) {
 }
 
 export default function DashboardPage() {
+    const { t } = useLanguage();
     const [nodes, setNodes] = useState(() => buildCityNodes('Delhi'));
     const [selectedCity, setSelectedCity] = useState(null);
     const [selectedNode, setSelectedNode] = useState(null);
@@ -307,17 +302,17 @@ export default function DashboardPage() {
                         <span><span className="text-accent-cyan">Signal</span>Sync</span>
                     </Link>
                     <div className="flex items-center gap-3">
-                        <Link href="/portal" className="inline-flex gap-1.5 items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent-cyan text-black no-underline">🔒 Portal</Link>
-                        <Link href="/" className="inline-flex gap-1.5 items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">← Home</Link>
+                        <Link href="/portal" className="inline-flex gap-1.5 items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent-cyan text-black no-underline">🔒 {t('portalLink')}</Link>
+                        <Link href="/" className="inline-flex gap-1.5 items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">← {t('homeLink')}</Link>
                     </div>
                 </header>
 
                 <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-6 py-20">
                     <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest">
-                        <span className="w-5 h-0.5 bg-accent-cyan rounded-full" />Monitor City
+                        <span className="w-5 h-0.5 bg-accent-cyan rounded-full" />{t('monitorCity')}
                     </div>
-                    <h1 className="text-4xl font-extrabold tracking-tight mb-3 text-center">Select a City</h1>
-                    <p className="text-text-secondary text-sm mb-12 text-center max-w-md">View live traffic intelligence, active green corridors, and critical intersection stats.</p>
+                    <h1 className="text-4xl font-extrabold tracking-tight mb-3 text-center">{t('selectACity')}</h1>
+                    <p className="text-text-secondary text-sm mb-12 text-center max-w-md">{t('citySelectDesc')}</p>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-w-3xl w-full">
                         {CITIES.map(city => (
@@ -325,7 +320,7 @@ export default function DashboardPage() {
                                 className="flex flex-col items-start gap-1 bg-bg-card border border-white/5 hover:border-accent-cyan/40 hover:bg-accent-cyan/[0.04] rounded-2xl p-5 text-left transition-all cursor-pointer font-sans group">
                                 <span className="text-base font-bold group-hover:text-accent-cyan transition-colors">{city.name}</span>
                                 <span className="text-[0.7rem] text-text-muted">{city.state}</span>
-                                {city.name === 'Delhi' && <span className="text-[0.6rem] font-bold text-accent-cyan mt-1.5">● LIVE DATA</span>}
+                                {city.name === 'Delhi' && <span className="text-[0.6rem] font-bold text-accent-cyan mt-1.5">● {t('liveData')}</span>}
                             </button>
                         ))}
                     </div>
@@ -347,16 +342,16 @@ export default function DashboardPage() {
                         <span><span className="text-accent-cyan">Signal</span>Sync</span>
                     </Link>
                     <div className="w-px h-5 bg-white/10" />
-                    <span className="text-xs text-text-muted">Live Control</span>
+                    <span className="text-xs text-text-muted">{t('liveControl')}</span>
                     <span className="text-xs font-bold text-accent-cyan">{selectedCity}</span>
-                    <button onClick={() => setSelectedCity(null)} className="text-[0.6rem] text-text-muted hover:text-white bg-white/5 border border-white/5 rounded-md px-1.5 py-0.5 font-sans cursor-pointer">Change</button>
+                    <button onClick={() => setSelectedCity(null)} className="text-[0.6rem] text-text-muted hover:text-white bg-white/5 border border-white/5 rounded-md px-1.5 py-0.5 font-sans cursor-pointer">{t('changeCity')}</button>
                 </div>
 
                 <div className="flex items-center gap-8">
                     {[
-                        ['Active Corridors', String(liveCorridors.length || 0), 'text-accent-green'],
-                        ['Nodes Online', '24/24', 'text-accent-cyan'],
-                        ['Avg Density', `${avgDensity}%`, avgDensity > 70 ? 'text-accent-red' : avgDensity > 45 ? 'text-accent-amber' : 'text-accent-green'],
+                        [t('activeCorridorsHdr'), String(liveCorridors.length || 0), 'text-accent-green'],
+                        [t('nodesOnline'), '24/24', 'text-accent-cyan'],
+                        [t('avgDensity'), `${avgDensity}%`, avgDensity > 70 ? 'text-accent-red' : avgDensity > 45 ? 'text-accent-amber' : 'text-accent-green'],
                     ].map(([l, v, c]) => (
                         <div key={l} className="flex flex-col items-center">
                             <span className="text-[0.58rem] text-text-muted uppercase tracking-widest">{l}</span>
@@ -369,8 +364,8 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-1.5 bg-accent-green/10 border border-accent-green/20 rounded-full px-2.5 py-1">
                         <StatusDot color="green" /><span className="font-mono text-xs text-text-secondary">LIVE</span>
                     </div>
-                    <Link href="/portal" className="inline-flex gap-1.5 items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent-cyan text-black no-underline">Portal</Link>
-                    <Link href="/" className="inline-flex gap-1.5 items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">Home</Link>
+                    <Link href="/portal" className="inline-flex gap-1.5 items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-accent-cyan text-black no-underline">{t('portalLink')}</Link>
+                    <Link href="/" className="inline-flex gap-1.5 items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">{t('homeLink')}</Link>
                 </div>
             </header>
 
@@ -380,25 +375,25 @@ export default function DashboardPage() {
                 {/* LEFT column */}
                 <div className="flex flex-col gap-6">
 
-                    {/* ─── Feature Navigator — evaluator quick-access ─── */}
+                    {/* ─── Feature Navigator ─── */}
                     <div className="bg-bg-card border border-white/5 rounded-2xl p-4">
-                        <div className="text-[0.6rem] font-bold uppercase tracking-widest text-text-muted mb-3">Feature Navigator — Try All Flows</div>
+                        <div className="text-[0.6rem] font-bold uppercase tracking-widest text-text-muted mb-3">{t('featureNav')}</div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                             <Link href="/routes" className="flex flex-col gap-1 bg-accent-cyan/[0.05] border border-accent-cyan/20 hover:border-accent-cyan/50 rounded-xl p-3 no-underline transition-all group">
-                                <span className="text-xs font-bold text-accent-cyan group-hover:text-white transition-colors">Route Finder</span>
-                                <span className="text-[0.6rem] text-text-muted leading-tight">Public commuter — no login</span>
+                                <span className="text-xs font-bold text-accent-cyan group-hover:text-white transition-colors">{t('routeFinder')}</span>
+                                <span className="text-[0.6rem] text-text-muted leading-tight">{t('routeFinderDesc2')}</span>
                             </Link>
                             <Link href="/portal" className="flex flex-col gap-1 bg-accent-green/[0.05] border border-accent-green/20 hover:border-accent-green/50 rounded-xl p-3 no-underline transition-all group">
-                                <span className="text-xs font-bold text-accent-green group-hover:text-white transition-colors">Green Corridor</span>
-                                <span className="text-[0.6rem] text-text-muted leading-tight">Verified dispatcher — login required</span>
+                                <span className="text-xs font-bold text-accent-green group-hover:text-white transition-colors">{t('greenCorridor')}</span>
+                                <span className="text-[0.6rem] text-text-muted leading-tight">{t('greenCorridorDesc')}</span>
                             </Link>
                             <button onClick={() => document.getElementById('yolo-panel')?.scrollIntoView({ behavior: 'smooth' })} className="flex flex-col gap-1 bg-accent-amber/[0.05] border border-accent-amber/20 hover:border-accent-amber/50 rounded-xl p-3 text-left transition-all group cursor-pointer font-sans">
-                                <span className="text-xs font-bold text-accent-amber group-hover:text-white transition-colors">Visual Failsafe</span>
-                                <span className="text-[0.6rem] text-text-muted leading-tight">YOLO detection — scroll down</span>
+                                <span className="text-xs font-bold text-accent-amber group-hover:text-white transition-colors">{t('visualFailsafe')}</span>
+                                <span className="text-[0.6rem] text-text-muted leading-tight">{t('visualFailsafeDesc')}</span>
                             </button>
                             <Link href="/admin" className="flex flex-col gap-1 bg-accent-red/[0.05] border border-accent-red/20 hover:border-accent-red/50 rounded-xl p-3 no-underline transition-all group">
-                                <span className="text-xs font-bold text-accent-red group-hover:text-white transition-colors">Admin Panel</span>
-                                <span className="text-[0.6rem] text-text-muted leading-tight">Signal control, users, corridors</span>
+                                <span className="text-xs font-bold text-accent-red group-hover:text-white transition-colors">{t('adminPanel')}</span>
+                                <span className="text-[0.6rem] text-text-muted leading-tight">{t('adminPanelDesc')}</span>
                             </Link>
                         </div>
                     </div>
@@ -407,27 +402,27 @@ export default function DashboardPage() {
                     <section>
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
-                                <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted">Live Green Corridors — {selectedCity}</h2>
+                                <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted">{t('liveGreenCorridors')} — {selectedCity}</h2>
                                 {cityLiveCorridors.length > 0 && (
-                                    <span className="text-[0.6rem] font-bold bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan rounded-full px-2 py-0.5">{cityLiveCorridors.length} Active</span>
+                                    <span className="text-[0.6rem] font-bold bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan rounded-full px-2 py-0.5">{cityLiveCorridors.length} {t('activeCors')}</span>
                                 )}
                             </div>
-                            <Link href="/portal" className="text-[0.7rem] font-semibold text-accent-cyan hover:text-white transition-colors no-underline">+ New Corridor →</Link>
+                            <Link href="/portal" className="text-[0.7rem] font-semibold text-accent-cyan hover:text-white transition-colors no-underline">{t('newCorridor')}</Link>
                         </div>
 
                         {cityLiveCorridors.length === 0 ? (
                             <div className="border border-white/5 border-dashed rounded-2xl p-8 text-center">
                                 <div className="text-3xl mb-3">🚑</div>
-                                <div className="text-sm font-semibold text-text-muted mb-2">No active corridors in {selectedCity}</div>
-                                <p className="text-xs text-text-muted mb-4">Corridors activated from the portal for this city appear here in real time.</p>
+                                <div className="text-sm font-semibold text-text-muted mb-2">{t('noActiveCorridorsCity')} {selectedCity}</div>
+                                <p className="text-xs text-text-muted mb-4">{t('corridorFromPortal')}</p>
                                 <Link href="/portal" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-accent-cyan text-black no-underline hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] transition-all">
-                                    Activate Green Corridor
+                                    {t('activateGreenCorridor')}
                                 </Link>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                                 {cityLiveCorridors.map(c => (
-                                    <CorridorCard key={c.id} corridor={c} onTerminate={() => terminateCorridor(c.id)} />
+                                    <CorridorCard key={c.id} corridor={c} onTerminate={() => terminateCorridor(c.id)} t={t} />
                                 ))}
                             </div>
                         )}
@@ -437,22 +432,21 @@ export default function DashboardPage() {
                     <section className="relative">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
-                                <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted">Intersection Nodes — {selectedCity}</h2>
-                                <Badge variant="cyan">{nodes.length} Active</Badge>
+                                <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted">{t('intersectionNodes')} — {selectedCity}</h2>
+                                <Badge variant="cyan">{nodes.length} {t('activeCors')}</Badge>
                             </div>
                             <div className="flex items-center gap-3 text-[0.65rem] text-text-muted">
-                                {[['#00ff9d', 'Low'], ['#ffb800', 'Med'], ['#ff3b5c', 'High']].map(([c, l]) => (
+                                {[[t('densityLow'), '#00ff9d'], [t('densityMed'), '#ffb800'], [t('densityHigh'), '#ff3b5c']].map(([l, c]) => (
                                     <span key={l} className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: c }} />{l}</span>
                                 ))}
-                                <span className="text-[0.62rem] text-text-muted italic">Click node for details</span>
+                                <span className="text-[0.62rem] text-text-muted italic">{t('clickNodeDetails')}</span>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                             {nodes.map(node => <NodeRow key={node.id} node={node} onClick={setSelectedNode} />)}
                         </div>
-                        {/* Slide-up detail panel */}
                         {selectedNode && (
-                            <NodeDetail node={selectedNode} onClose={() => setSelectedNode(null)} />
+                            <NodeDetail node={selectedNode} onClose={() => setSelectedNode(null)} t={t} />
                         )}
                     </section>
 
@@ -465,18 +459,17 @@ export default function DashboardPage() {
 
                     {/* Active corridor (static/demo) */}
                     <div className="bg-bg-card border border-white/5 rounded-2xl p-5">
-                        <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4">🚑 Demo Corridor — {selectedCity}</div>
+                        <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4">🚑 {t('demoCorridor')} — {selectedCity}</div>
                         <div className="bg-accent-cyan/[0.04] border border-accent-cyan/15 rounded-xl p-4">
-                            <div className="flex flex-wrap gap-1.5 mb-3"><Badge variant="red">AMB-042</Badge><Badge variant="green">ACTIVE</Badge></div>
+                            <div className="flex flex-wrap gap-1.5 mb-3"><Badge variant="red">AMB-042</Badge><Badge variant="green">{t('activeCors')}</Badge></div>
                             <div className="text-xs font-semibold mb-1">📍 {(CITY_NODES[selectedCity] || CITY_NODES['Delhi'])[0]?.name || 'Start'}</div>
                             <div className="w-0.5 h-3 bg-gradient-to-b from-accent-green to-accent-cyan ml-2 my-1.5" />
                             <div className="text-xs font-semibold mb-3">🏥 {(CITY_NODES[selectedCity] || CITY_NODES['Delhi'])[4]?.name || 'End'}</div>
 
-                            {/* Demo CorridorStatusBox with city-specific nodes */}
                             <DemoCorridorStatus etaStr={etaStr} cityName={selectedCity} />
 
                             <div className="flex gap-5 pt-3 border-t border-white/5 mt-3">
-                                {[['Speed', `${speed} km/h`, 'text-white'], ['Stops', '0', 'text-accent-green']].map(([l, v, c]) => (
+                                {[[t('speed'), `${speed} km/h`, 'text-white'], [t('stops'), '0', 'text-accent-green']].map(([l, v, c]) => (
                                     <div key={l}><div className="text-[0.58rem] text-text-muted uppercase">{l}</div><div className={`font-bold font-mono text-sm ${c}`}>{v}</div></div>
                                 ))}
                             </div>
@@ -485,7 +478,7 @@ export default function DashboardPage() {
 
                     {/* Lane density */}
                     <div className="bg-bg-card border border-white/5 rounded-2xl p-5">
-                        <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4">🚗 Lane Density — {selectedCity}</div>
+                        <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4">🚗 {t('laneDensity')} — {selectedCity}</div>
                         <div className="flex flex-col gap-3">
                             {cityLanes.map((label, i) => {
                                 const d = nodes[i * 4]?.density ?? 50;
@@ -506,9 +499,9 @@ export default function DashboardPage() {
 
                     {/* City stats */}
                     <div className="bg-bg-card border border-white/5 rounded-2xl p-5">
-                        <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4">📊 City Stats</div>
+                        <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4">📊 {t('cityStats')}</div>
                         <div className="grid grid-cols-2 gap-3">
-                            {[['Avg Wait', '8.3s', 'text-text-primary'], ['CO₂ Saved', '2.4 t', 'text-accent-green'], ['Fuel Saved', '1,840L', 'text-accent-green'], ['Congestion', `${avgDensity}%`, avgDensity > 70 ? 'text-accent-red' : 'text-accent-amber']].map(([l, v, c]) => (
+                            {[[t('avgWait'), '8.3s', 'text-text-primary'], [t('co2Saved'), '2.4 t', 'text-accent-green'], [t('fuelSaved'), '1,840L', 'text-accent-green'], [t('congestion'), `${avgDensity}%`, avgDensity > 70 ? 'text-accent-red' : 'text-accent-amber']].map(([l, v, c]) => (
                                 <div key={l} className="bg-white/[0.02] border border-white/5 rounded-xl p-3">
                                     <div className="text-[0.6rem] text-text-muted mb-1">{l}</div>
                                     <div className={`text-base font-bold font-mono ${c}`}>{v}</div>
@@ -519,9 +512,9 @@ export default function DashboardPage() {
 
                     {/* Actions */}
                     <div className="bg-bg-card border border-white/5 rounded-2xl p-5">
-                        <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4">⚡ Actions</div>
+                        <div className="text-[0.65rem] font-bold uppercase tracking-widest text-text-muted mb-4">⚡ {t('actions')}</div>
                         <Link href="/portal" className="flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-sm font-bold bg-accent-cyan text-black no-underline hover:shadow-[0_0_20px_rgba(0,245,255,0.4)] transition-all">
-                            🚑 New Green Corridor
+                            {t('newGreenCorridor')}
                         </Link>
                     </div>
                 </div>

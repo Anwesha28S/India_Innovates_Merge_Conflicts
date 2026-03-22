@@ -213,6 +213,55 @@ const FLOWS = [
 
 function FlowsSection() {
     const [active, setActive] = useState(0);
+    const { t } = useLanguage();
+
+    const FLOWS = [
+        {
+            id: 0, labelKey: 'flow1Label', badge: 'cyan', color: 'cyan',
+            titleKey: 'flow1Title',
+            desc: 'The public-facing layer. Every citizen benefits from AI-optimized routing without any special access.',
+            steps: [
+                ['Open the public app', 'Enter your destination as usual'],
+                ['AI Overlay Applied', 'Base route from Google Maps API, augmented with live intersection wait times from SignalSync cameras'],
+                ['Dynamic Re-routing', 'If your route hits density >70%, the app reroutes you in real time, naturally balancing city-wide load'],
+                ['Arrive Faster', 'Average 40% reduction in intersection wait time citywide'],
+            ],
+        },
+        {
+            id: 1, labelKey: 'flow2Label', badge: 'red', color: 'red',
+            titleKey: 'flow2Title',
+            desc: 'Planned Green Corridor — zero stops from accident site to hospital.',
+            steps: [
+                ['Dispatcher logs in', 'Authenticates via secure Green Corridor Portal with hospital credentials'],
+                ['Enter Route', 'Our custom A* graph algorithm calculates the fastest, clearest path'],
+                ['Initiate Green Wave', 'System preempts every intersection 30 seconds before arrival'],
+                ['Zero Stops', 'Ambulance passes through a dynamically maintained green corridor end-to-end'],
+            ],
+        },
+        {
+            id: 2, labelKey: 'flow3Label', badge: 'amber', color: 'amber',
+            titleKey: 'flow3Title',
+            desc: 'No GPS, no portal — the Edge-AI camera detects the vehicle and acts autonomously.',
+            steps: [
+                ['Ambulance approaches', 'Not using the portal — GPS unavailable. Standard approach to intersection'],
+                ['YOLO Detection', 'Camera detects Class: Ambulance with 97%+ confidence — shape, color, strobe pattern'],
+                ['Safety Buffer Protocol', '3-second yellow clearance → cross-traffic turns red → emergency lane turns green'],
+                ['Auto-resume', 'Once vehicle clears the frame, intersection instantly returns to AI dynamic cycle'],
+            ],
+        },
+        {
+            id: 3, labelKey: 'flow4Label', badge: 'violet', color: 'violet',
+            titleKey: 'flow4Title',
+            desc: 'Highest clearance tier — full route lock with extended buffers before and after the convoy.',
+            steps: [
+                ['Security Chief logs in', 'MFA-secured access with VVIP-tier credentials'],
+                ['Route Mapping', 'System prioritizes wider roads and fewer complex intersections for convoy safety'],
+                ['Convoy Lock activated', 'Extended green buffer — cross-traffic held red before AND after convoy passes'],
+                ['Node Release', 'Once the final vehicle clears a node, AI dynamic cycle resumes instantly'],
+            ],
+        },
+    ];
+
     const flow = FLOWS[active];
     const stepNumColor = { cyan: 'bg-[rgba(0,245,255,0.12)] text-accent-cyan', red: 'bg-[rgba(255,59,92,0.12)] text-accent-red', amber: 'bg-[rgba(255,184,0,0.12)] text-accent-amber', violet: 'bg-[rgba(124,58,237,0.12)] text-[#a78bfa]' };
 
@@ -220,11 +269,10 @@ function FlowsSection() {
         <section id="flows" className="relative z-10 py-24">
             <div className="max-w-[1200px] mx-auto px-10">
                 <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest">
-                    <span className="w-5 h-0.5 bg-accent-cyan rounded-full" />{flow.desc === 'User Journeys' ? 'User Journeys' : 'User Journeys'}
+                    <span className="w-5 h-0.5 bg-accent-cyan rounded-full" />{t('flowsLabel')}
                 </div>
                 <h2 className="text-4xl font-extrabold tracking-tight leading-tight mb-3">
-                    {/* Hack to use useLanguage without passing t into the component as a prop, though it is not optimal. But better is to just render the standard title if no t hook is here. Wait, actually I will need to pass t or fetch it via useLanguage inside FlowsSection. */}
-                    Four Mission-Critical <span className="grad-text">Use Cases</span>
+                    {t('flowsTitle')}
                 </h2>
 
                 {/* Tabs */}
@@ -233,7 +281,7 @@ function FlowsSection() {
                         <button key={f.id} onClick={() => setActive(i)}
                             className={`flex-1 py-2 px-4 rounded-lg text-[0.85rem] font-semibold transition-all font-sans ${active === i ? 'bg-bg-card text-accent-cyan shadow-[0_2px_8px_rgba(0,0,0,0.3)]' : 'text-text-muted hover:text-text-secondary'
                                 }`}>
-                            {f.label}
+                            {t(f.labelKey)}
                         </button>
                     ))}
                 </div>
@@ -243,7 +291,7 @@ function FlowsSection() {
                     {/* Steps */}
                     <div className="flex flex-col gap-4">
                         <Badge variant={flow.badge}>{flow.badge === 'cyan' ? 'Flow 1' : flow.badge === 'red' ? 'Flow 2' : flow.badge === 'amber' ? 'Flow 3' : 'Flow 4'}</Badge>
-                        <h3 className="text-2xl font-extrabold mt-2">{flow.title}</h3>
+                        <h3 className="text-2xl font-extrabold mt-2">{t(flow.titleKey)}</h3>
                         <p className="text-text-secondary text-sm">{flow.desc}</p>
                         {flow.steps.map(([title, desc], i) => (
                             <div key={i} className="flex gap-4 items-start bg-white/[0.02] border border-white/5 rounded-xl p-4">
@@ -320,21 +368,30 @@ const FAQS = [
 
 function FaqSection() {
     const [open, setOpen] = useState(null);
+    const { t } = useLanguage();
+    const FAQS = [
+        { qKey: 'faq1Q', aKey: 'faq1A' },
+        { qKey: 'faq2Q', aKey: 'faq2A' },
+        { qKey: 'faq3Q', aKey: 'faq3A' },
+        { qKey: 'faq4Q', aKey: 'faq4A' },
+        { qKey: 'faq5Q', aKey: 'faq5A' },
+        { qKey: 'faq6Q', aKey: 'faq6A' },
+    ];
     return (
         <section id="faq" className="relative z-10 py-24">
             <div className="max-w-[1200px] mx-auto px-10">
-                <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />Judge Q&A</div>
-                <h2 className="text-4xl font-extrabold tracking-tight mb-3">Edge Cases &amp; <span className="grad-text">Fail-Safes</span></h2>
-                <p className="text-text-secondary mb-12 max-w-xl">SignalSync anticipates real-world failure modes. Every "What if?" has an engineered answer.</p>
+                <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />{t('faqLabel')}</div>
+                <h2 className="text-4xl font-extrabold tracking-tight mb-3">{t('faqTitle')} <span className="grad-text">{t('faqTitle').split(' ').slice(-1)[0]}</span></h2>
+                <p className="text-text-secondary mb-12 max-w-xl">{t('faqDesc')}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     {FAQS.map((faq, i) => (
                         <div key={i} onClick={() => setOpen(open === i ? null : i)}
                             className={`bg-bg-card border rounded-xl p-5 cursor-pointer transition-all hover:border-accent-cyan/20 ${open === i ? 'border-accent-cyan/25' : 'border-white/5'}`}>
                             <div className="flex items-center gap-2.5 font-semibold text-sm">
-                                <span>{faq.q}</span>
+                                <span>{t(faq.qKey)}</span>
                                 <span className={`ml-auto text-text-muted transition-transform ${open === i ? 'rotate-180 text-accent-cyan' : ''}`}>↓</span>
                             </div>
-                            {open === i && <p className="text-text-secondary text-[0.875rem] leading-relaxed mt-3 pt-3 border-t border-white/5">{faq.a}</p>}
+                            {open === i && <p className="text-text-secondary text-[0.875rem] leading-relaxed mt-3 pt-3 border-t border-white/5">{t(faq.aKey)}</p>}
                         </div>
                     ))}
                 </div>
@@ -358,7 +415,7 @@ export default function HomePage() {
                     <div>
                         {/* Badge */}
                         <div className="inline-flex items-center gap-2.5 bg-accent-cyan/10 border border-accent-cyan/20 rounded-full px-4 py-2 mb-6 text-sm text-text-secondary">
-                            <StatusDot color="green" /><span>AI Traffic System — Active</span><Badge variant="cyan">v1.0</Badge>
+                            <StatusDot color="green" /><span>{t('heroBadge')}</span><Badge variant="cyan">v1.0</Badge>
                         </div>
                         <h1 className="text-5xl font-black leading-[1.05] tracking-[-1.5px] mb-5 animate-fade-in-up">
                             {t('heroTitle') || <>Intelligent Traffic<br />That <span className="grad-text">Saves Lives</span><br />in Real Time</>}
@@ -372,7 +429,12 @@ export default function HomePage() {
                         </div>
                         {/* Stats bar */}
                         <div className="flex flex-wrap bg-white/[0.03] border border-white/5 rounded-xl overflow-hidden divide-x divide-white/5">
-                            {[{ target: 94, unit: '%', label: 'Emergency Response Improvement' }, { target: 3, unit: 's', label: 'Corridor Activation Time' }, { target: 40, unit: '%', label: 'Urban Congestion Reduction' }, { target: 95, unit: '%+', label: 'YOLO Detection Accuracy' }].map(s => (
+                            {[
+                                { target: 94, unit: '%', label: t('stat1Label') },
+                                { target: 3, unit: 's', label: t('stat2Label') },
+                                { target: 40, unit: '%', label: t('stat3Label') },
+                                { target: 95, unit: '%+', label: t('stat4Label') }
+                            ].map(s => (
                                 <StatCard key={s.label} {...s} />
                             ))}
                         </div>
@@ -386,22 +448,22 @@ export default function HomePage() {
             {/* PROBLEM */}
             <section id="problem" className="relative z-10 py-24">
                 <div className="max-w-[1200px] mx-auto px-10">
-                    <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />The Crisis</div>
+                    <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />{t('crisisLabel')}</div>
                     <h2 className="text-4xl font-extrabold tracking-tight mb-3">{t('crisisTitle')}</h2>
                     <p className="text-text-secondary mb-12 max-w-xl">{t('crisisDesc')}</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[
-                            { icon: '🏥', bg: 'bg-[rgba(255,59,92,0.15)]', color: 'text-accent-red', title: 'The Golden Hour Crisis', desc: 'Ambulances spend 10–15% of travel time idling at red lights — directly cutting into the critical 60-minute survival window after trauma.', stat: '12.5%', statLabel: 'average journey wasted at intersections' },
-                            { icon: '🛡️', bg: 'bg-[rgba(255,184,0,0.15)]', color: 'text-accent-amber', title: 'VVIP Security Vulnerabilities', desc: 'Convoys stopped at red lights become static targets. Traditional methods deploy hundreds of police hours in advance, disrupting the entire city.', stat: '100s', statLabel: 'of officers needed for manual road blocks' },
-                            { icon: '🚗', bg: 'bg-[rgba(0,245,255,0.10)]', color: 'text-accent-cyan', title: 'Inefficient "Dumb" Grids', desc: 'Fixed-timer PLCs keep lanes green even when completely empty, burning millions of gallons of fuel annually and creating localized pollution spikes.', stat: 'Millions', statLabel: 'of gallons wasted annually from idle signals' },
-                        ].map(({ icon, bg, color, title, desc, stat, statLabel }) => (
-                            <div key={title} className="bg-bg-card border border-white/5 rounded-xl p-8 hover:-translate-y-1 transition-all">
+                            { icon: '🏥', bg: 'bg-[rgba(255,59,92,0.15)]', color: 'text-accent-red', titleKey: 'crisis1Title', descKey: 'crisis1Desc', statKey: 'crisis1Stat', statLabelKey: 'crisis1StatLabel' },
+                            { icon: '🛡️', bg: 'bg-[rgba(255,184,0,0.15)]', color: 'text-accent-amber', titleKey: 'crisis2Title', descKey: 'crisis2Desc', statKey: 'crisis2Stat', statLabelKey: 'crisis2StatLabel' },
+                            { icon: '🚗', bg: 'bg-[rgba(0,245,255,0.10)]', color: 'text-accent-cyan', titleKey: 'crisis3Title', descKey: 'crisis3Desc', statKey: 'crisis3Stat', statLabelKey: 'crisis3StatLabel' },
+                        ].map(({ icon, bg, color, titleKey, descKey, statKey, statLabelKey }) => (
+                            <div key={titleKey} className="bg-bg-card border border-white/5 rounded-xl p-8 hover:-translate-y-1 transition-all">
                                 <div className={`w-12 h-12 rounded-xl ${bg} flex items-center justify-center text-2xl mb-4`}>{icon}</div>
-                                <h3 className="font-bold text-lg mb-2">{title}</h3>
-                                <p className="text-text-secondary text-sm leading-relaxed mb-5">{desc}</p>
+                                <h3 className="font-bold text-lg mb-2">{t(titleKey)}</h3>
+                                <p className="text-text-secondary text-sm leading-relaxed mb-5">{t(descKey)}</p>
                                 <div className="flex items-center gap-2.5 pt-4 border-t border-white/5">
-                                    <span className={`text-2xl font-black font-mono ${color}`}>{stat}</span>
-                                    <span className="text-xs text-text-muted">{statLabel}</span>
+                                    <span className={`text-2xl font-black font-mono ${color}`}>{t(statKey)}</span>
+                                    <span className="text-xs text-text-muted">{t(statLabelKey)}</span>
                                 </div>
                             </div>
                         ))}
@@ -414,13 +476,13 @@ export default function HomePage() {
             {/* PILLARS */}
             <section id="pillars" className="relative z-10 py-24">
                 <div className="max-w-[1200px] mx-auto px-10">
-                    <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />The Solution</div>
+                    <div className="flex items-center gap-2 mb-4 text-accent-cyan text-xs font-bold uppercase tracking-widest"><span className="w-5 h-0.5 bg-accent-cyan rounded-full" />{t('solutionLabel')}</div>
                     <h2 className="text-4xl font-extrabold tracking-tight mb-3">{t('pillarsTitle')}</h2>
                     <p className="text-text-secondary mb-12 max-w-xl">{t('pillarsDesc')}</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <PillarCard letter="A" badge="Pillar A" variant="cyan" title="AI Vision & Dynamic Signal Control" desc="YOLOv8 cameras count vehicles in real time and allocate green time proportionally — never wasting a cycle on an empty lane." features={['Real-time vehicle density detection', 'Dynamic green time allocation', 'Live Google Maps density overlay']} tags={['YOLOv8', 'OpenCV', 'WebSocket']} />
-                        <PillarCard letter="B" badge="Pillar B" variant="green" title="Visual Failsafe — Camera Override" desc="Edge-AI detects ambulance shape, color, and strobes locally. No GPS or portal needed — triggers a 3-second safe clearance automatically." features={['Works offline, no cloud needed', '3s yellow → red → green sequence', '97%+ detection confidence']} tags={['Edge AI', 'PyTorch', 'Offline']} />
-                        <PillarCard letter="C" badge="Pillar C" variant="violet" title="Verified Green Corridor Portal" desc="Secure dispatcher portal for hospitals and security chiefs to initiate a zero-stop green wave — preempting signals 30 seconds ahead." features={['RBAC + MFA access control', 'Predictive 30s preemption', 'Immutable session audit trail']} tags={['RBAC + MFA', 'FastAPI', 'React.js']} />
+                        <PillarCard letter="A" badge="Pillar A" variant="cyan" title={t('pillarATitle')} desc={t('pillarADesc')} features={[t('pillarAF1'), t('pillarAF2'), t('pillarAF3')]} tags={['YOLOv8', 'OpenCV', 'WebSocket']} />
+                        <PillarCard letter="B" badge="Pillar B" variant="green" title={t('pillarBTitle')} desc={t('pillarBDesc')} features={[t('pillarBF1'), t('pillarBF2'), t('pillarBF3')]} tags={['Edge AI', 'PyTorch', 'Offline']} />
+                        <PillarCard letter="C" badge="Pillar C" variant="violet" title={t('pillarCTitle')} desc={t('pillarCDesc')} features={[t('pillarCF1'), t('pillarCF2'), t('pillarCF3')]} tags={['RBAC + MFA', 'FastAPI', 'React.js']} />
                     </div>
                 </div>
             </section>
@@ -446,12 +508,12 @@ export default function HomePage() {
                             <div className="w-9 h-9 rounded-[6px] bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center neon-cyan">⬡</div>
                             <span><span className="text-accent-cyan">Signal</span>Sync</span>
                         </Link>
-                        <p className="text-text-muted text-xs leading-relaxed mb-4">AI-powered intelligent traffic management. Saving lives, securing convoys, reducing congestion.</p>
-                        <div className="flex items-center gap-2"><StatusDot color="green" /><span className="text-xs text-text-secondary">All Systems Operational</span></div>
+                        <p className="text-text-muted text-xs leading-relaxed mb-4">{t('footerDesc')}</p>
+                        <div className="flex items-center gap-2"><StatusDot color="green" /><span className="text-xs text-text-secondary">{t('footerStatus')}</span></div>
                     </div>
                     {/* Emergency Contacts */}
                     <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">Emergency Contacts</div>
+                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">{t('footerEmergency')}</div>
                         <div className="flex flex-col gap-2.5">
                             {[['Ambulance (National)', '102'], ['Fire Brigade', '101'], ['Police', '100'], ['AIIMS Delhi', '011-2658-8500'], ['GVK EMRI', '108']].map(([l, v]) => (
                                 <div key={l} className="flex justify-between items-center text-xs border-b border-white/5 pb-2">
@@ -463,7 +525,7 @@ export default function HomePage() {
                     </div>
                     {/* Cities */}
                     <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">Target Cities</div>
+                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">{t('footerCities')}</div>
                         <div className="grid grid-cols-2 gap-1.5">
                             {['Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad'].map(c => (
                                 <div key={c} className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-accent-cyan transition-colors cursor-default">
@@ -474,13 +536,13 @@ export default function HomePage() {
                     </div>
                     {/* Quick Links */}
                     <div>
-                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">Quick Access</div>
+                        <div className="text-[0.7rem] font-bold uppercase tracking-widest text-text-muted mb-4">{t('footerQuickAccess')}</div>
                         <div className="flex flex-col gap-2">
-                            <Link href="/dashboard" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">Live Dashboard</Link>
-                            <Link href="/portal" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">Green Corridor Portal</Link>
-                            <a href="#pillars" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">Three-Pillar Solution</a>
-                            <a href="#flows" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">User Journeys</a>
-                            <a href="#faq" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">Edge Cases &amp; FAQ</a>
+                            <Link href="/dashboard" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">{t('liveDashboard')}</Link>
+                            <Link href="/portal" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">{t('footerPortal')}</Link>
+                            <a href="#pillars" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">{t('footerSolution')}</a>
+                            <a href="#flows" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">{t('footerUserJourneys')}</a>
+                            <a href="#faq" className="text-xs text-text-secondary hover:text-accent-cyan no-underline transition-colors">{t('footerEdgeCases')}</a>
                         </div>
                     </div>
                 </div>

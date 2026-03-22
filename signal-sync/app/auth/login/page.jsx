@@ -5,9 +5,11 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/components/LanguageProvider';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { t } = useLanguage();
     // Email login states
     const [loginMode, setLoginMode] = useState('email'); // 'email', 'aadhaar', 'dl'
     const [email, setEmail] = useState('');
@@ -138,27 +140,27 @@ export default function LoginPage() {
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center text-2xl neon-cyan">⬡</div>
                         <span><span className="text-accent-cyan">Signal</span>Sync</span>
                     </Link>
-                    <h2 className="text-xl font-bold mt-1">{showReset ? 'Reset Password' : 'Sign In'}</h2>
-                    {!showReset && <p className="text-text-secondary text-sm mt-1 text-center">Access the Green Corridor Dispatcher via multiple docs.</p>}
+                    <h2 className="text-xl font-bold mt-1">{showReset ? t('resetPassword') : t('signInTitle')}</h2>
+                    {!showReset && <p className="text-text-secondary text-sm mt-1 text-center">{t('accessGreen')}</p>}
                 </div>
 
                 {showReset ? (
                     <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Email Address</label>
+                            <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('emailAddress')}</label>
                             <input type="email" required className="input-field" value={resetEmail}
                                 onChange={e => setResetEmail(e.target.value)} placeholder="your@email.com" />
                         </div>
                         {resetMsg && <p className={`text-sm text-center ${resetMsg.includes('sent') ? 'text-accent-green' : 'text-accent-red'}`}>{resetMsg}</p>}
                         <button type="submit" disabled={resetLoading} className="w-full py-3.5 rounded-xl font-bold bg-gradient-to-br from-accent-violet to-[#7c3aed] text-white">
-                            {resetLoading ? 'Sending…' : 'Send Reset Email'}
+                            {resetLoading ? t('sending') : t('sendResetEmail')}
                         </button>
-                        <button type="button" onClick={() => { setShowReset(false); setResetMsg(''); }} className="text-sm text-text-muted hover:text-white mt-2 border-none bg-transparent cursor-pointer">← Back to Sign In</button>
+                        <button type="button" onClick={() => { setShowReset(false); setResetMsg(''); }} className="text-sm text-text-muted hover:text-white mt-2 border-none bg-transparent cursor-pointer">{t('backToSignIn')}</button>
                     </form>
                 ) : (
                     <>
                         <div className="flex bg-black/30 p-1 rounded-xl mb-6">
-                            <button onClick={() => { setLoginMode('email'); setError(''); }} className={`flex-1 py-2 text-sm rounded-lg transition-colors ${loginMode==='email' ? 'bg-[#7c3aed] text-white font-bold' : 'text-text-muted hover:text-white'}`}>Email</button>
+                            <button onClick={() => { setLoginMode('email'); setError(''); }} className={`flex-1 py-2 text-sm rounded-lg transition-colors ${loginMode==='email' ? 'bg-[#7c3aed] text-white font-bold' : 'text-text-muted hover:text-white'}`}>{t('emailLabel')}</button>
                             <button onClick={() => { setLoginMode('aadhaar'); setError(''); setOtpSent(false); }} className={`flex-1 py-2 text-sm rounded-lg transition-colors ${loginMode==='aadhaar' ? 'bg-[#7c3aed] text-white font-bold' : 'text-text-muted hover:text-white'}`}>Aadhaar</button>
                             <button onClick={() => { setLoginMode('dl'); setError(''); }} className={`flex-1 py-2 text-sm rounded-lg transition-colors ${loginMode==='dl' ? 'bg-[#7c3aed] text-white font-bold' : 'text-text-muted hover:text-white'}`}>Div. License</button>
                         </div>
@@ -166,19 +168,19 @@ export default function LoginPage() {
                         {loginMode === 'email' && (
                             <form onSubmit={handleLogin} className="flex flex-col gap-4">
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Email</label>
+                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('emailLabel')}</label>
                                     <input type="email" required className="input-field" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" />
                                 </div>
                                 <div className="flex flex-col gap-1.5">
                                     <div className="flex justify-between items-center">
-                                        <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Password</label>
-                                        <button type="button" onClick={() => { setShowReset(true); setResetEmail(email); }} className="text-[0.75rem] text-accent-cyan hover:underline bg-transparent border-none cursor-pointer">Forgot password?</button>
+                                        <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('passwordLabel')}</label>
+                                        <button type="button" onClick={() => { setShowReset(true); setResetEmail(email); }} className="text-[0.75rem] text-accent-cyan hover:underline bg-transparent border-none cursor-pointer">{t('forgotPassword')}</button>
                                     </div>
                                     <input type="password" required className="input-field" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
                                 </div>
                                 {error && <p className="text-accent-red text-sm text-center">{error}</p>}
                                 <button type="submit" disabled={loading} className="w-full mt-2 py-3.5 rounded-xl font-bold bg-gradient-to-br from-accent-cyan to-[#0099cc] text-black">
-                                    {loading ? 'Signing in…' : 'Sign In'}
+                                    {loading ? t('signingIn') : t('signInTitle')}
                                 </button>
                             </form>
                         )}
@@ -186,7 +188,7 @@ export default function LoginPage() {
                         {loginMode === 'aadhaar' && (
                             <form onSubmit={otpSent ? handleAadhaarVerify : handleAadhaarRequest} className="flex flex-col gap-4">
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Select Role</label>
+                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('selectRole')}</label>
                                     <select value={role} onChange={e => setRole(e.target.value)} className="input-field bg-[rgba(20,25,35,0.8)]">
                                         <option value="AMBULANCE_DRIVER">Ambulance Driver</option>
                                         <option value="FIRE_TRUCK_OPERATOR">Fire Truck Operator</option>
@@ -194,18 +196,18 @@ export default function LoginPage() {
                                     </select>
                                 </div>
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Aadhaar Number</label>
+                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('aadhaarNumber')}</label>
                                     <input type="text" required disabled={otpSent} className="input-field disabled:opacity-50" value={documentNumber} onChange={e => setDocumentNumber(e.target.value)} placeholder="1234 5678 9012" />
                                 </div>
                                 {otpSent && (
                                     <div className="flex flex-col gap-1.5">
-                                        <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">OTP (Hint: 123456)</label>
-                                        <input type="text" required className="input-field" value={otp} onChange={e => setOtp(e.target.value)} placeholder="Enter 6-digit OTP" />
+                                        <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('otpHint')}</label>
+                                        <input type="text" required className="input-field" value={otp} onChange={e => setOtp(e.target.value)} placeholder={t('enterOTP')} />
                                     </div>
                                 )}
                                 {error && <p className="text-accent-red text-sm text-center">{error}</p>}
                                 <button type="submit" disabled={loading} className="w-full mt-2 py-3.5 rounded-xl font-bold bg-gradient-to-br from-accent-violet to-[#7c3aed] text-white">
-                                    {loading ? 'Processing…' : (otpSent ? 'Verify OTP' : 'Request OTP')}
+                                    {loading ? t('processing') : (otpSent ? t('verifyOTP') : t('requestOTP'))}
                                 </button>
                             </form>
                         )}
@@ -213,7 +215,7 @@ export default function LoginPage() {
                         {loginMode === 'dl' && (
                             <form onSubmit={handleDLUpload} className="flex flex-col gap-4">
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Select Role</label>
+                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('selectRole')}</label>
                                     <select value={role} onChange={e => setRole(e.target.value)} className="input-field bg-[rgba(20,25,35,0.8)]">
                                         <option value="AMBULANCE_DRIVER">Ambulance Driver</option>
                                         <option value="FIRE_TRUCK_OPERATOR">Fire Truck Operator</option>
@@ -221,22 +223,22 @@ export default function LoginPage() {
                                     </select>
                                 </div>
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Driving License ID</label>
+                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('dlNumber')}</label>
                                     <input type="text" required className="input-field" value={documentNumber} onChange={e => setDocumentNumber(e.target.value)} placeholder="DL-XXX-XXXX" />
                                 </div>
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Upload DL Image</label>
+                                    <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('uploadDL')}</label>
                                     <input type="file" className="text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[rgba(124,58,237,0.2)] file:text-accent-violet hover:file:bg-[rgba(124,58,237,0.3)]" accept="image/*" />
                                 </div>
                                 {error && <p className="text-accent-red text-sm text-center">{error}</p>}
                                 <button type="submit" disabled={loading} className="w-full mt-2 py-3.5 rounded-xl font-bold bg-gradient-to-br from-accent-cyan to-[#0099cc] text-black">
-                                    {loading ? 'Uploading…' : 'Submit for Verification'}
+                                    {loading ? t('uploading') : t('submitVerification')}
                                 </button>
                             </form>
                         )}
                         
                         <div className="mt-5 pt-4 border-t border-white/5 text-center text-sm text-text-muted">
-                            No account? <Link href="/auth/register" className="text-accent-cyan hover:underline">Register here</Link>
+                            {t('noAccount')} <Link href="/auth/register" className="text-accent-cyan hover:underline">{t('registerHere')}</Link>
                         </div>
                     </>
                 )}

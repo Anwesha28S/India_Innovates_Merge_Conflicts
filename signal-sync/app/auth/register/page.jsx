@@ -5,9 +5,11 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/components/LanguageProvider';
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [form, setForm] = useState({ name: '', email: '', password: '', vehicleNumber: '', type: 'ambulance' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -53,29 +55,29 @@ export default function RegisterPage() {
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center text-2xl neon-cyan">⬡</div>
                         <span><span className="text-accent-cyan">Signal</span>Sync</span>
                     </Link>
-                    <h2 className="text-xl font-bold mt-1">Create Account</h2>
-                    <p className="text-text-secondary text-sm mt-1 text-center">Register to create green corridors for emergency vehicles</p>
+                    <h2 className="text-xl font-bold mt-1">{t('registerTitle')}</h2>
+                    <p className="text-text-secondary text-sm mt-1 text-center">{t('joinDispatcher')}</p>
                 </div>
 
                 <form onSubmit={handleRegister} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Full Name</label>
+                        <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('fullName')}</label>
                         <input required className="input-field" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Dr. Arjun Mehta" />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Email</label>
+                        <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('emailLabel')}</label>
                         <input type="email" required className="input-field" value={form.email} onChange={e => set('email', e.target.value)} placeholder="your@email.com" />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Password</label>
+                        <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('passwordLabel')}</label>
                         <input type="password" required minLength={6} className="input-field" value={form.password} onChange={e => set('password', e.target.value)} placeholder="Min 6 characters" />
                     </div>
 
                     {/* Vehicle section */}
                     <div className="bg-white/[0.02] border border-white/10 rounded-xl p-4 flex flex-col gap-3">
-                        <div className="text-[0.75rem] font-bold text-text-muted uppercase tracking-wide mb-1">Vehicle Details</div>
+                        <div className="text-[0.75rem] font-bold text-text-muted uppercase tracking-wide mb-1">{t('vehicleNumber')}</div>
                         <div className="flex gap-2">
-                            {[['ambulance', 'Ambulance'], ['fire', 'Fire Truck'], ['vvip', 'VVIP Convoy']].map(([v, l]) => (
+                            {[['ambulance', t('ambulanceLabel')], ['fire', t('fireTruckLabel')], ['vvip', t('vvipLabel')]].map(([v, l]) => (
                                 <button key={v} type="button" onClick={() => set('type', v)}
                                     className={`flex-1 py-2 px-1 rounded-xl border text-xs transition-all font-sans cursor-pointer ${form.type === v ? 'bg-accent-cyan/10 border-accent-cyan/35 text-accent-cyan' : 'bg-white/[0.02] border-white/5 text-text-secondary'}`}>
                                     {l}
@@ -83,7 +85,7 @@ export default function RegisterPage() {
                             ))}
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">Vehicle / Convoy Number</label>
+                            <label className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wide">{t('vehicleNumber')}</label>
                             <input required className="input-field font-mono" value={form.vehicleNumber} onChange={e => set('vehicleNumber', e.target.value)} placeholder="e.g. DL-1AB-2345 or AMB-042" />
                         </div>
                     </div>
@@ -92,13 +94,13 @@ export default function RegisterPage() {
 
                     <button type="submit" disabled={loading}
                         className="w-full py-3.5 rounded-xl font-bold bg-gradient-to-br from-accent-violet to-[#7c3aed] text-white shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_30px_rgba(124,58,237,0.5)] disabled:opacity-50 transition-all font-sans cursor-pointer">
-                        {loading ? 'Creating account…' : 'Register & Access Portal'}
+                        {loading ? t('registering') : t('createAccount')}
                     </button>
                 </form>
 
                 <div className="mt-5 pt-4 border-t border-white/5 text-center text-sm text-text-muted">
-                    Already registered?{' '}
-                    <Link href="/auth/login" className="text-accent-cyan hover:underline">Sign in</Link>
+                    {t('alreadyHaveAccount')}{' '}
+                    <Link href="/auth/login" className="text-accent-cyan hover:underline">{t('signInLink2')}</Link>
                 </div>
             </div>
         </div>

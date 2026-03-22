@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Badge from '@/components/Badge';
 import StatusDot from '@/components/StatusDot';
 import { useAuth } from '@/components/AuthProvider';
+import { useLanguage } from '@/components/LanguageProvider';
 import {
     subscribeAllCorridors, terminateCorridor, createCorridor,
     subscribeAllUsers, setUserRole, setUserVerification, subscribeSignals, setSignalStatus,
@@ -30,6 +31,7 @@ const STATUS_COLORS = {
 export default function AdminPage() {
     const { user, userProfile, loading, logout } = useAuth();
     const router = useRouter();
+    const { t } = useLanguage();
 
     useEffect(() => {
         if (!loading && (!user || userProfile?.role !== 'admin')) {
@@ -105,13 +107,13 @@ export default function AdminPage() {
                     <span><span className="text-accent-red">Signal</span>Sync Admin</span>
                 </Link>
                 <div className="flex items-center gap-2.5">
-                    <Badge variant="red">Administrator</Badge>
+                    <Badge variant="red">{t('administratorBadge')}</Badge>
                     <Badge variant="green"><StatusDot color="green" className="mr-1" />{userProfile?.name || user.email}</Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Link href="/portal" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">Portal</Link>
-                    <Link href="/dashboard" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">Dashboard</Link>
-                    <button onClick={logout} className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[rgba(255,59,92,0.15)] text-accent-red border border-accent-red/30 font-sans cursor-pointer">Logout</button>
+                    <Link href="/portal" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">{t('portalLink')}</Link>
+                    <Link href="/dashboard" className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/5 text-text-primary no-underline">{t('dashboardLink')}</Link>
+                    <button onClick={logout} className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[rgba(255,59,92,0.15)] text-accent-red border border-accent-red/30 font-sans cursor-pointer">{t('logoutLink')}</button>
                 </div>
             </nav>
 
