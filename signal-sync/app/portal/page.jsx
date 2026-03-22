@@ -125,6 +125,32 @@ export default function PortalPage() {
         return () => clearInterval(t);
     }, [corridorActive]);
 
+    // ── Auto-advance node timer (Fallback for when GPS is stationary) ────────
+    useEffect(() => {
+        if (!corridorActive || corridorNodes.length === 0) return;
+        
+        // Every 12 seconds, if we skip a node manually or stay stationary, 
+        // we auto-advance the green wave to the next node.
+        const interval = setInterval(() => {
+            const nextIdx = activeNodeIdx + 1;
+            if (nextIdx < corridorNodes.length) {
+                const nextNode = corridorNodes[nextIdx];
+                if (nextNode?.id) {
+                    console.log(`⏱️ AUTO-ADVANCE: Turning ${nextNode.name} green via timer wave`);
+                    setSignalStatus(nextNode.id, 'green', 'AUTO-TIMER');
+                }
+                const prevNode = corridorNodes[activeNodeIdx];
+                if (prevNode?.id) {
+                    console.log(`⏱️ AUTO-ADVANCE: Releasing ${prevNode.name}`);
+                    setSignalStatus(prevNode.id, 'auto', null);
+                }
+                setActiveNodeIdx(nextIdx);
+            }
+        }, 12000);
+
+        return () => clearInterval(interval);
+    }, [corridorActive, corridorNodes, activeNodeIdx]);
+
     // Stop GPS watch when navigation ends
     useEffect(() => {
         return () => {
@@ -318,6 +344,16 @@ export default function PortalPage() {
         if (corridorNodes.length === 0) setCorridorNodes(nodes);
         setActiveNodeIdx(0);
 
+        // ── Timeout-protected Firestore creation ──────────────────────────────
+        const creationTimeout = setTimeout(() => {
+            if (!corridorActive) {
+                setCreating(false);
+                setCorridorActive(true); 
+                setActiveCdId('local_' + Date.now()); // Fake ID to allow UI to proceed
+                console.warn('Corridor creation timed out - proceeding with local state');
+            }
+        }, 8000);
+
         try {
             const docRef = await createCorridor(user.uid, {
                 creatorName: userProfile?.name || user.email,
@@ -340,13 +376,13 @@ export default function PortalPage() {
                 timeSensitivity: corridorType === 'vvip' ? timeSensitivity : null,
             });
 
-            // CREATE IN BACKEND POSTGRES
+            // CREATE IN BACKEND POSTGRES (fire-and-forget, don't block activation)
             try {
                 let vType = 'AMBULANCE';
                 if (corridorType === 'fire') vType = 'FIRE_TRUCK';
                 if (corridorType === 'vvip') vType = 'VVIP';
                 
-                await fetch('http://localhost:8080/api/v1/incident/', {
+                fetch('http://localhost:8080/api/v1/incident/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -361,8 +397,8 @@ export default function PortalPage() {
                             details: { patientSeverity, fireType, fireSeverity, vvipLevel, timeSensitivity }
                         }]
                     })
-                });
-            } catch(e) { console.error("Backend incident sync failed", e); }
+                }).catch(e => console.error("Backend incident sync failed", e));
+            } catch(e) { }
 
             try {
                 const existing = localStorage.getItem('signalsync_active_corridors');
@@ -383,10 +419,17 @@ export default function PortalPage() {
 
             setActiveCdId(docRef.id);
             setCorridorActive(true);
-            // GPS navigation is started manually by user during travel — not auto-started here
+            
+            // Turn first node green immediately
+            if (nodes[0]?.id) {
+                setSignalStatus(nodes[0].id, 'green', 'START-WAVE');
+            }
         } catch (err) {
             console.error('Failed to create corridor:', err);
+            // Fallback: activate locally even if Firestore fails
+            setCorridorActive(true);
         } finally {
+            clearTimeout(creationTimeout);
             setCreating(false);
         }
     }
@@ -532,11 +575,6 @@ export default function PortalPage() {
                                             <div className="text-xl font-extrabold font-mono text-accent-amber">{routeInfo.durationText}</div>
                                             <div className="text-xs text-text-secondary mt-1">{routeInfo.distanceText}</div>
                                         </div>
-                                        {/* <div className="flex-1 bg-accent-green/5 border border-accent-green/30 rounded-xl p-3.5 text-center">
-                                            <div className="text-[0.65rem] text-text-muted uppercase mb-1">SignalSync Corridor</div>
-                                            <div className="text-xl font-extrabold font-mono text-accent-green">~{Math.round((routeInfo.durationSec * 0.6) / 60)}m</div>
-                                            <div className="text-xs text-text-secondary mt-1">Zero stops</div>
-                                        </div> */}
                                     </div>
 
                                     {/* Corridor creation — auth + verification required */}
