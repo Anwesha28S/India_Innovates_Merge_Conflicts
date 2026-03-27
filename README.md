@@ -1,16 +1,23 @@
 <div align="center">
 
-# ⬡ SignalSync
-### Adaptive Urban Route Architecture — Intelligent Traffic Grid
+<img src="signal-sync/public/logo.png" alt="SignalSync Logo" width="160" />
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-12-orange?logo=firebase)](https://firebase.google.com/)
-[![Google Maps](https://img.shields.io/badge/Google_Maps_API-enabled-4285F4?logo=google-maps)](https://developers.google.com/maps)
-[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-38bdf8?logo=tailwindcss)](https://tailwindcss.com/)
+# SignalSync
 
-**Team Merge_Conflicts · India Innovates Hackathon**
+### AI-Powered Intelligent Traffic Management & Emergency Response System
 
-*A real-time AI-powered urban traffic intelligence platform with live green corridor management for emergency vehicles across 8 major Indian cities.*
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![YOLOv8](https://img.shields.io/badge/YOLOv8-Edge_AI-00CFFF?style=for-the-badge&logo=python&logoColor=white)](https://docs.ultralytics.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-Realtime-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![Google Maps](https://img.shields.io/badge/Google_Maps-API-4285F4?style=for-the-badge&logo=google-maps&logoColor=white)](https://developers.google.com/maps)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org/)
+
+**Team Merge_Conflicts · India Innovates Hackathon 2026**
+
+*Restoring the Golden Hour — one green signal at a time.*
+
+[Live Demo](#-getting-started) · [Architecture](#-system-architecture) · [Edge AI](#-edge-ai-module) · [Setup Guide](#-getting-started)
 
 </div>
 
@@ -19,91 +26,243 @@
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
-- [The Problem We're Solving](#-the-problem-were-solving)
+- [The Problem](#-the-problem)
+- [Our Solution](#-our-solution)
+- [System Architecture](#-system-architecture)
 - [Key Features](#-key-features)
+- [Edge AI Module](#-edge-ai-module)
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
 - [Getting Started](#-getting-started)
 - [Environment Variables](#-environment-variables)
 - [Pages & Routes](#-pages--routes)
 - [Green Corridor System](#-green-corridor-system)
+- [Signal Control Logic](#-signal-control-logic)
 - [City Coverage](#-city-coverage)
 - [Firebase Setup](#-firebase-setup)
+- [Team](#-team)
+- [License](#-license)
 
 ---
 
 ## 🌐 Overview
 
-SignalSync is a full-stack Next.js web application built by **Team Merge_Conflicts** for the **India Innovates Hackathon**. It demonstrates how real-time traffic intelligence and green corridor preemption can save lives by eliminating red-light delays for emergency vehicles.
+**SignalSync** is a full-stack AI-powered traffic management platform that combines **real-time computer vision** (YOLOv8), **dynamic signal control**, and **emergency green corridor management** to tackle India's most critical urban mobility challenges.
 
-**Three core pillars:**
+Built by **Team Merge_Conflicts** for the **India Innovates Hackathon 2026**, SignalSync demonstrates how edge AI and connected infrastructure can save lives during the critical **Golden Hour** — the 60-minute window where timely medical intervention can mean the difference between life and death.
 
-| Pillar | What It Does |
-|---|---|
-| **AI Traffic Vision** | Live intersection density simulation with real named chowks per city |
-| **Green Corridor Portal** | Dispatcher creates a zero-stop signal priority path for ambulances, fire trucks & VVIP convoys |
-| **Live Dashboard** | City-wide traffic control center showing all active corridors and node statuses in real time |
+> **💡 Key Insight:** Ambulances in Indian cities spend **10–15% of their journey time** stuck at red lights. SignalSync eliminates that delay entirely.
 
 ---
 
-## 🚨 The Problem We're Solving
+## 🚨 The Problem
 
-- 🏥 Ambulances spend **10–15% of journey time** idling at red lights, cutting into the critical 60-minute "Golden Hour"
-- 🛡️ VVIP convoys stopped at traffic lights become **static security targets**
-- 🚗 Fixed-timer signals waste fuel on empty lanes every single day
+<div align="center">
 
-SignalSync solves all three with a connected signals platform that a dispatcher can trigger in seconds.
+| Problem | Impact |
+|---------|--------|
+| 🏥 **Red-light delays for ambulances** | 10–15% of Golden Hour lost idling at signals |
+| 🚦 **Fixed-timer traffic signals** | Waste fuel on empty lanes, ignore real-time density |
+| 🛡️ **VVIP convoy security** | Stopped convoys become static security targets |
+| 📊 **No real-time visibility** | Traffic control rooms lack live intersection intelligence |
+| 🔇 **No automated preemption** | Signal override requires manual radio coordination |
+
+</div>
+
+---
+
+## 💡 Our Solution
+
+SignalSync operates on **three integrated pillars**:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                          SIGNALSYNC                              │
+├──────────────────┬──────────────────┬────────────────────────────┤
+│   🎯 AI VISION   │  🟢 GREEN WAVE   │    📊 LIVE DASHBOARD      │
+│                  │                  │                            │
+│  YOLOv8 detects  │  Dispatcher      │  City-wide traffic        │
+│  vehicles at     │  creates a       │  control center with      │
+│  every inter-    │  zero-stop       │  real-time node status,   │
+│  section in      │  signal priority │  active corridors, and    │
+│  real-time       │  path for        │  AI-powered density       │
+│                  │  ambulances      │  analytics                │
+├──────────────────┼──────────────────┼────────────────────────────┤
+│  4-cam pipeline  │  GPS tracking    │  Signal cycle control     │
+│  N/S/E/W feeds   │  Auto-terminate  │  Manual + AI override     │
+│  Edge processing │  Firebase sync   │  Emergency detection      │
+└──────────────────┴──────────────────┴────────────────────────────┘
+```
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TB
+    subgraph Edge["🎯 Edge AI Layer"]
+        V1[CAM: NORTH] --> YOLO[YOLOv8 Model]
+        V2[CAM: SOUTH] --> YOLO
+        V3[CAM: EAST] --> YOLO
+        V4[CAM: WEST] --> YOLO
+        YOLO --> SC[Signal Controller]
+        YOLO --> MJPEG[MJPEG Streamer :8001]
+    end
+
+    subgraph Cloud["☁️ Cloud Layer"]
+        FB[(Firebase Firestore)]
+        AUTH[Firebase Auth]
+    end
+
+    subgraph Frontend["🖥️ Frontend Layer"]
+        HP[Landing Page]
+        DB[Live Dashboard]
+        PT[Green Corridor Portal]
+        IM[Intersection Modal]
+    end
+
+    SC --> FB
+    MJPEG --> IM
+    FB --> DB
+    FB --> PT
+    AUTH --> PT
+```
+
+**Data Flow:**
+1. **Edge cameras** feed video into YOLOv8 for real-time vehicle detection
+2. **Signal Controller** analyzes N/S vs E/W density → dynamically assigns GREEN to the denser axis
+3. **MJPEG Streamer** serves annotated video feeds with bounding boxes to the dashboard
+4. **Firebase Firestore** syncs signal states, corridor data, and intersection stats in real-time
+5. **Dashboard** displays live feeds, signal status, and emergency override controls
 
 ---
 
 ## ✨ Key Features
 
-### 🏠 Homepage
-- Animated intersection hero — traffic light cycling N-S / E-W phases
-- Ambulance emoji correctly oriented (faces right, drives left-to-right)
-- Problem statement, three-pillar architecture, user flows
+### 🏠 Landing Page (`/`)
+- Visuo-inspired dark violet-black aesthetic with animated purple spotlight
+- Animated intersection hero with traffic light cycling N/S ↔ E/W phases
+- Problem statement, three-pillar architecture breakdown, user flow diagrams
+- Multi-language support (English, Hindi, Kannada, Telugu, Tamil, Marathi, Bengali, Gujarati)
 
-### 🗺️ Portal (`/portal`)
-- **City selector** — Delhi, Mumbai, Bengaluru, Hyderabad, Chennai, Pune, Kolkata, Ahmedabad
-- **📍 Use My Location** — one-tap GPS button (browser Geolocation API) sets real GPS coordinates as route origin
-- **Route Finder** with live traffic-aware Google Directions (departure-time + `BEST_GUESS` traffic model)
-- **Initiate Green Wave** — saves corridor to Firestore, auto-selects 5 real city intersections along the route
-- **CorridorStatusBox** — animated GREEN ✓ / PREP ⏱ / QUEUED badges per intersection node
-- **Traffic signal circle overlays** on the map — colored rings at each node show live signal state
-- **Start Live GPS Tracking** — `watchPosition()` tracks vehicle with pulsing blue dot, map auto-recenters at zoom 15
-- **Auto-terminate** — corridor removed from Firestore + localStorage 2.5 s after vehicle reaches destination
+### 📊 Live Dashboard (`/dashboard`)
+- **City picker** — 8 major Indian cities with instant data refresh
+- **AI Camera Network** — 6 real named intersections per city with live YOLO density
+- **4-Direction Intersection Modal** — click any camera to open the N/S/E/W quad-view with:
+  - Real-time YOLO bounding boxes on each direction's video feed
+  - Independent signal poles per direction (GREEN/YELLOW/RED)
+  - Live density percentage and vehicle count per direction
+  - Traffic status banners (FLOWING / STOPPED / CLEARING)
+- **Signal Control Panel** — traffic light status, countdown timer, N/S vs E/W density bar
+- **Manual Override Controls** — Force Green, Force Red, Reset Auto per intersection
+- **Emergency Detection** — Force Emergency button simulates ambulance detection cascade
+- **IoT Auto-Preemption** — GPS-based signal preemption when ambulance is within 500m
+- **Live Green Corridors** — polls Firestore + localStorage every 1.5s for active corridors
+- **System Log** — timestamped event log showing all signal changes and detections
 
-### 📊 Dashboard (`/dashboard`)
-- **City picker** — select from 8 supported cities; all data refreshes instantly
-- **Intersection Nodes grid** — real named chowks for the selected city with live density fluctuation
-- **Live Green Corridors** — filtered per selected city; polls Firestore + localStorage every 1.5 s
-- **Demo Corridor** sidebar — animated CorridorStatusBox using city-specific intersection names
-- **Lane Density** — city-specific major road names with live load bars
+### 🗺️ Green Corridor Portal (`/portal`)
+- **📍 Use My Location** — one-tap GPS auto-fill using Browser Geolocation API
+- **Route Finder** — Google Directions API with live traffic-aware routing (departure-time + `BEST_GUESS`)
+- **Initiate Green Wave** — saves corridor to Firestore, auto-selects 5 intersections along the route
+- **CorridorStatusBox** — animated GREEN ✓ / PREP ⏱ / QUEUED status per node
+- **Traffic signal overlays** — colored rings at each node on the Google Map
+- **Live GPS Tracking** — `watchPosition()` tracks vehicle with pulsing blue dot, map auto-recenters
+- **Auto-terminate** — corridor removed from Firestore + localStorage 2.5s after arrival
 
-### 🔐 Auth (`/auth/login`, `/auth/register`)
+### 🔐 Authentication (`/auth/login`, `/auth/register`)
 - Firebase Authentication (Email/Password)
-- Role-based access — `admin` role unlocks vehicle number override + full admin panel
+- Role-based access control — `admin` role unlocks full signal override panel
 
 ### ⚙️ Admin Panel (`/admin`)
 - Admin-only route guarded by Firestore role check
+- Full signal override capabilities
 
-### 🔍 Route Finder (`/routes`)
-- Standalone route search with city-bounded Google Places Autocomplete
+---
+
+## 🤖 Edge AI Module
+
+The `edge-sim/` directory contains the **Python-based Edge AI processing pipeline** — the brain of SignalSync's real-time traffic intelligence.
+
+### Components
+
+| File | Purpose |
+|------|---------|
+| `streamer.py` | 4-direction pipelined YOLO streamer with MJPEG output and signal control |
+| `runner.py` | Standalone YOLO runner that pushes emergency events to Firebase |
+| `firebase_client.py` | Firebase Admin SDK client for pushing intersection stats and events |
+| `yolov8n.pt` | Pre-trained YOLOv8n model weights |
+
+### How It Works
+
+```
+┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  4 Video     │────▶│  YOLOv8 Inference │────▶│  Frame Buffer   │
+│  Sources     │     │  (every 4th frame)│     │  (3.5s batches) │
+│  N/S/E/W     │     │                  │     │                 │
+└─────────────┘     └──────────────────┘     └────────┬────────┘
+                                                       │
+                    ┌──────────────────┐               │
+                    │  Signal          │◀──────────────┘
+                    │  Controller      │     density stats
+                    │  (1s tick)       │
+                    └────────┬─────────┘
+                             │
+                    ┌────────▼─────────┐     ┌─────────────────┐
+                    │  MJPEG Stream    │────▶│  Dashboard       │
+                    │  :8001           │     │  (Browser)       │
+                    └────────┬─────────┘     └─────────────────┘
+                             │
+                    ┌────────▼─────────┐
+                    │  Firebase Push   │
+                    │  (2s interval)   │
+                    └──────────────────┘
+```
+
+### Per-Direction Video Pipeline
+
+Each direction (NORTH, SOUTH, EAST, WEST) has its **own dedicated video file** and processing pipeline:
+
+| Direction | Video Source | Axis |
+|-----------|------------|------|
+| NORTH | `demo.mp4` | N/S |
+| SOUTH | `WhatsApp Video 1.mp4` | N/S |
+| EAST | `WhatsApp Video 2.mp4` | E/W |
+| WEST | `WhatsApp Video 3.mp4` | E/W |
+
+Each pipeline runs in its own thread with double-buffered frame processing for smooth, gap-free MJPEG streaming at 20fps.
+
+### API Endpoints (Port 8001)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/video_feed/{direction}` | GET | MJPEG stream for NORTH/SOUTH/EAST/WEST |
+| `/signal_state` | GET | Current signal phase, mode, and axis densities |
+| `/signal_override` | POST | Admin-only manual signal phase lock |
+| `/stats` | GET | Per-direction YOLO detection stats |
+| `/stats/{direction}` | GET | Stats for a single direction |
+| `/health` | GET | Service health check with pipeline readiness |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| Styling | Tailwind CSS 3 + custom CSS design tokens |
-| Maps | `@react-google-maps/api` — Maps JS, Directions, Places Autocomplete |
-| GPS Tracking | Browser Geolocation API (`getCurrentPosition` + `watchPosition`) |
-| Auth | Firebase Authentication (Email/Password) |
-| Database | Cloud Firestore (real-time corridor sync) |
-| State | React hooks — `useState`, `useEffect`, `useRef`, `useCallback` |
-| Realtime | Firestore `onSnapshot` + `localStorage` polling (1.5 s) |
+<div align="center">
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | Next.js 16 (App Router) | React-based SSR/CSR application |
+| **Styling** | Tailwind CSS 3 + Custom CSS tokens | Dark-mode design system with Visuo aesthetic |
+| **Maps** | Google Maps JavaScript API | Maps, Directions, Places Autocomplete |
+| **GPS** | Browser Geolocation API | Real-time vehicle tracking |
+| **Auth** | Firebase Authentication | Email/Password login with role-based access |
+| **Database** | Cloud Firestore | Real-time corridor sync and intersection stats |
+| **AI/ML** | YOLOv8n (Ultralytics) | Real-time vehicle detection and classification |
+| **Video** | OpenCV + MJPEG | 4-direction video processing and streaming |
+| **Backend** | FastAPI + Uvicorn | Edge AI REST API and MJPEG streamer |
+| **IoT** | Firebase Realtime Signals | GPS-based ambulance geofence preemption |
+| **i18n** | Custom LanguageProvider | 8-language support (EN, HI, KN, TE, TA, MR, BN, GU) |
+
+</div>
 
 ---
 
@@ -112,43 +271,68 @@ SignalSync solves all three with a connected signals platform that a dispatcher 
 ```
 India_Innovates_Merge_Conflicts/
 │
-├── README.md                     ← You are here
+├── README.md                          ← You are here
+├── start-backend.ps1                  ← One-click backend launcher (all 4 services)
+├── start-frontend.ps1                 ← Frontend dev server launcher
+├── yolov8n.pt                         ← YOLO model weights
 │
-└── SignalSync/                    ← Next.js application root
-    │
-    ├── app/                      # Pages (Next.js App Router)
-    │   ├── layout.jsx            # Root layout — AuthProvider, global styles
-    │   ├── globals.css           # Design tokens, animations, utility classes
-    │   ├── page.jsx              # Homepage — animated hero, traffic light, ambulance
-    │   ├── portal/
-    │   │   └── page.jsx          # Green Corridor portal — GPS, route finder, wave activation
+├── edge-sim/                          ← 🤖 Edge AI Processing Module
+│   ├── streamer.py                    # 4-direction YOLO streamer + signal controller
+│   ├── runner.py                      # Standalone YOLO runner → Firebase events
+│   ├── firebase_client.py             # Firebase Admin SDK push client
+│   ├── requirements.txt               # Python dependencies
+│   ├── serviceAccountKey.json         # 🔑 Firebase service account (gitignored)
+│   ├── yolov8n.pt                     # YOLOv8n model weights
+│   ├── demo.mp4                       # NORTH camera demo video
+│   ├── WhatsApp Video 1.mp4           # SOUTH camera demo video
+│   ├── WhatsApp Video 2.mp4           # EAST camera demo video
+│   └── WhatsApp Video 3.mp4           # WEST camera demo video
+│
+└── signal-sync/                       ← 🖥️ Next.js Frontend Application
+    ├── app/
+    │   ├── layout.jsx                 # Root layout — AuthProvider, fonts, global styles
+    │   ├── globals.css                # Design tokens, Visuo theme, animations
+    │   ├── page.jsx                   # Landing page — animated hero, problem, pillars
     │   ├── dashboard/
-    │   │   └── page.jsx          # Live city dashboard — nodes, corridors, demo
+    │   │   └── page.jsx               # Live city dashboard — AI cameras, corridors
+    │   ├── portal/
+    │   │   └── page.jsx               # Green corridor creation & GPS navigation
     │   ├── routes/
-    │   │   └── page.jsx          # Standalone route finder
+    │   │   └── page.jsx               # Standalone route finder
     │   ├── admin/
-    │   │   └── page.jsx          # Admin panel (role-gated)
+    │   │   └── page.jsx               # Admin panel (role-gated)
+    │   ├── profile/
+    │   │   └── page.jsx               # User profile page
     │   └── auth/
-    │       ├── login/page.jsx    # Sign-in page
-    │       └── register/page.jsx # Registration page
+    │       ├── login/page.jsx         # Sign-in page
+    │       └── register/page.jsx      # Registration page
     │
     ├── components/
-    │   ├── DelhiMap.jsx          # Google Maps — GPS dot, signal circle overlays,
-    │   │                         #   DirectionsRenderer, TrafficLayer, MovingAmbulance
-    │   ├── CorridorStatusBox.jsx # Animated GREEN / PREP / QUEUED status per node
-    │   ├── AuthProvider.jsx      # Firebase auth context + user profile from Firestore
-    │   ├── Badge.jsx             # Styled badge pill (cyan / green / red / violet)
-    │   ├── StatusDot.jsx         # Pulsing colored dot indicator
-    │   └── Navbar.jsx            # Shared navigation bar
+    │   ├── YoloFailsafePanel.jsx      # 6-camera AI grid with signal control
+    │   ├── IntersectionModal.jsx       # 4-direction N/S/E/W expanded view
+    │   ├── DelhiMap.jsx               # Google Maps with GPS, overlays, directions
+    │   ├── CorridorStatusBox.jsx       # Animated GREEN/PREP/QUEUED status
+    │   ├── DemoCorridorStatus.jsx      # Demo corridor animation
+    │   ├── Navbar.jsx                 # Navigation bar
+    │   ├── Chatbot.jsx                # In-app chatbot
+    │   ├── AuthProvider.jsx           # Firebase auth context + Firestore profile
+    │   ├── LanguageProvider.jsx        # Multi-language context provider
+    │   └── LanguagePicker.jsx         # Language selection dropdown
     │
     ├── lib/
-    │   ├── firebase.js           # Firebase app + Auth + Firestore initialisation
-    │   ├── firestore.js          # Firestore helpers — createCorridor, terminateCorridor,
-    │   │                         #   subscribeActiveCorridors, setSignalStatus
-    │   └── cityNodes.js          # Real intersection data for 8 cities (~17 nodes each)
-    │                             #   + pickCorridorNodes() geographic selection helper
+    │   ├── firebase.js                # Firebase app + Auth + Firestore init
+    │   ├── firestore.js               # Firestore helpers — corridors, signals
+    │   ├── cityNodes.js               # Real intersection data for 8 cities
+    │   └── i18n.js                    # Translation strings (8 languages)
     │
-    ├── .env.local                # 🔑 Environment variables 
+    ├── public/
+    │   ├── logo.png                   # SignalSync logo
+    │   ├── cam-north.mp4              # Fallback video — NORTH direction
+    │   ├── cam-south.mp4              # Fallback video — SOUTH direction
+    │   ├── cam-east.mp4               # Fallback video — EAST direction
+    │   └── cam-west.mp4               # Fallback video — WEST direction
+    │
+    ├── .env.local                     # 🔑 Environment variables (gitignored)
     ├── next.config.js
     ├── tailwind.config.js
     ├── postcss.config.js
@@ -160,71 +344,54 @@ India_Innovates_Merge_Conflicts/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js** ≥ 18 ([nodejs.org](https://nodejs.org) — download LTS, check "Add to PATH" during install)
-- A **Google Cloud** project with these APIs enabled:
-  - ✅ Maps JavaScript API
-  - ✅ Directions API
-  - ✅ Places API
-- A **Firebase** project with:
-  - ✅ Authentication → Email/Password enabled
-  - ✅ Cloud Firestore database created
 
-### 1. Clone the repository
+| Requirement | Version | Installation |
+|-------------|---------|-------------|
+| **Node.js** | ≥ 18 LTS | [nodejs.org](https://nodejs.org) |
+| **Python** | ≥ 3.10 | [python.org](https://python.org) |
+| **pip** | Latest | Comes with Python |
+| **Google Cloud** | — | Maps JS API, Directions API, Places API enabled |
+| **Firebase** | — | Auth (Email/Password) + Cloud Firestore |
+
+### Step 1 — Clone the Repository
 
 ```bash
-git clone https://github.com/prathamb9/India_Innovates_Merge_Conflicts.git
+git clone https://github.com/Aniruddha1406/India_Innovates_Merge_Conflicts.git
 cd India_Innovates_Merge_Conflicts
 ```
 
-### 2. Navigate into the app folder
+### Step 2 — Install Frontend Dependencies
 
 ```bash
-cd SignalSync
-```
-
-> ⚠️ **Important:** All commands below must be run from inside `SignalSync/`, not from the repo root.
-
-### 3. Install dependencies
-
-```bash
+cd signal-sync
 npm install
 ```
 
-> **⚠️ If `npm install` throws dependency errors**, run with force flag instead:
-> ```bash
-> npm install --force
-> ```
+> ⚠️ If `npm install` fails with peer dependency errors, use `npm install --force`
 
-### 4. Configure environment variables
-
-Create a file named `.env.local` inside `SignalSync/` (see [Environment Variables](#-environment-variables) below).
-
-### 5. Run the development server
+### Step 3 — Install Edge AI Dependencies
 
 ```bash
-npm run dev
+cd edge-sim
+pip install -r requirements.txt
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — you should see the SignalSync homepage. 🎉
+**Required Python packages:**
+- `ultralytics` (YOLOv8)
+- `opencv-python`
+- `fastapi`
+- `uvicorn`
+- `firebase-admin`
 
-### 6. Build for production (optional)
+### Step 4 — Configure Environment Variables
 
-```bash
-npm run build
-npm run start
-```
-
----
-
-## 🔑 Environment Variables
-
-Create `SignalSync/.env.local` with your keys:
+Create `signal-sync/.env.local`:
 
 ```env
-# ── Google Maps ───────────────────────────────────────────────────────────────
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+# ── Google Maps ──────────────────────────────────────────
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 
-# ── Firebase ──────────────────────────────────────────────────────────────────
+# ── Firebase (Client SDK) ────────────────────────────────
 NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
@@ -233,21 +400,85 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 ```
 
-> All variables prefixed with `NEXT_PUBLIC_` are exposed to the browser. Never put admin/secret keys in these variables.
+Place your Firebase Admin SDK service account key at:
+```
+edge-sim/serviceAccountKey.json
+```
+
+> 🔐 Both `.env.local` and `serviceAccountKey.json` are gitignored. Never commit credentials.
+
+### Step 5 — Launch Everything
+
+**Option A: One-click launch (Windows PowerShell)**
+
+```powershell
+# Terminal 1 — All backend services
+.\start-backend.ps1
+
+# Terminal 2 — Frontend dev server
+.\start-frontend.ps1
+```
+
+**Option B: Manual launch**
+
+```bash
+# Terminal 1 — FastAPI Backend (port 5000)
+cd backend
+python -m uvicorn main:app --port 5000 --reload
+
+# Terminal 2 — YOLO Streamer (port 8001)
+cd edge-sim
+python streamer.py --video-north demo.mp4 --video-south "WhatsApp Video 1.mp4" --video-east "WhatsApp Video 2.mp4" --video-west "WhatsApp Video 3.mp4" --port 8001
+
+# Terminal 3 — YOLO Runner (Firebase events)
+cd edge-sim
+python runner.py --video demo.mp4 --headless
+
+# Terminal 4 — Next.js Frontend (port 3000)
+cd signal-sync
+npm run dev
+```
+
+### Step 6 — Open in Browser
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Frontend** | [http://localhost:3000](http://localhost:3000) | SignalSync web application |
+| **YOLO Streamer** | [http://localhost:8001/health](http://localhost:8001/health) | Edge AI health check |
+| **YOLO Feeds** | [http://localhost:8001/video_feed/NORTH](http://localhost:8001/video_feed/NORTH) | Live MJPEG stream |
+
+---
+
+## 🔑 Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | ✅ | Google Maps JavaScript API key |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | ✅ | Firebase project API key |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | ✅ | Firebase Auth domain |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | ✅ | Firebase project ID |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | ✅ | Firebase Storage bucket |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | ✅ | Firebase Cloud Messaging sender ID |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | ✅ | Firebase app ID |
+
+> All `NEXT_PUBLIC_` prefixed variables are exposed to the browser. Admin/secret keys go in `serviceAccountKey.json` only.
 
 ---
 
 ## 📄 Pages & Routes
 
-| Route | Description | Auth Required |
-|---|---|---|
-| `/` | Homepage — animated hero, problem statement, pillars | No |
-| `/dashboard` | City traffic dashboard — live nodes, corridors, demo | No |
-| `/portal` | Green corridor creation & GPS navigation | Yes (for full features) |
-| `/routes` | Standalone route finder with autocomplete | No |
-| `/admin` | Admin panel | Yes (admin role) |
-| `/auth/login` | Sign in with email/password | No |
-| `/auth/register` | Create a new account | No |
+| Route | Page | Auth | Description |
+|-------|------|------|-------------|
+| `/` | Landing Page | No | Animated hero, problem statement, solution pillars, user flows |
+| `/dashboard` | Live Dashboard | No | City-wide AI camera network, signal control, corridors |
+| `/portal` | Green Corridor | Yes* | Create corridors, GPS tracking, real-time signal override |
+| `/routes` | Route Finder | No | Standalone route search with city-bounded autocomplete |
+| `/admin` | Admin Panel | Admin | Signal override, system management |
+| `/profile` | User Profile | Yes | User account settings |
+| `/auth/login` | Sign In | No | Email/password authentication |
+| `/auth/register` | Sign Up | No | New account creation |
+
+*\*Basic features accessible without auth; full corridor creation requires sign-in.*
 
 ---
 
@@ -256,77 +487,140 @@ NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 ### End-to-End Flow
 
 ```
-1. Operator opens /portal → selects city → enters origin & destination
-         ↓
-2. [Optional] Tap 📍 to auto-fill origin from device GPS (one-tap, no continuous tracking)
-         ↓
-3. Click "Get Best Route"
-   → Google Directions fetches traffic-aware route with live departure-time model
-         ↓
-4. Click "Initiate Green Wave"
-   → pickCorridorNodes() selects 5 real chowks closest to the route path
-   → Corridor saved to Firestore + localStorage
-   → Colored signal circle overlays appear on map (🟢 GREEN / 🟡 AMBER / 🔴 RED)
-         ↓
-5. Demo ambulance drives the route on the embedded Google Map
-   → Each node fires onNodeAdvance() callback
-   → CorridorStatusBox updates live (GREEN → PREP → QUEUED cascade)
-   → Dashboard polls localStorage every 1.5 s and mirrors the status
-         ↓
-6. [During physical travel] Tap "Start Live GPS Tracking"
-   → watchPosition() tracks vehicle — pulsing blue dot follows on map at zoom 15
-   → GPS tracking runs ONLY during travel, NOT during corridor creation
-         ↓
-7. Vehicle arrives → auto-terminate fires after 2.5 s grace period
-   → Corridor removed from Firestore + localStorage
-   → Dashboard and portal both reset automatically
+ ① Operator opens /portal
+    └─▶ Selects city → Enters origin & destination
+         └─▶ [Optional] Tap 📍 for GPS auto-fill
+
+ ② Clicks "Get Best Route"  
+    └─▶ Google Directions API fetches traffic-aware route
+         └─▶ Live departure-time model with BEST_GUESS traffic
+
+ ③ Clicks "Initiate Green Wave"
+    └─▶ pickCorridorNodes() selects 5 real intersections along the route
+    └─▶ Corridor saved to Firestore + localStorage  
+    └─▶ Signal circle overlays appear on map (🟢 🟡 🔴)
+
+ ④ Demo ambulance drives the route on the map
+    └─▶ Each node triggers onNodeAdvance() callback
+    └─▶ CorridorStatusBox updates: GREEN → PREP → QUEUED cascade
+    └─▶ Dashboard polls localStorage every 1.5s and mirrors status
+
+ ⑤ [Physical travel] Tap "Start Live GPS Tracking"
+    └─▶ watchPosition() tracks vehicle with pulsing blue dot
+    └─▶ Map auto-recenters at zoom level 15
+
+ ⑥ Vehicle arrives at destination
+    └─▶ Auto-terminate fires after 2.5s grace period
+    └─▶ Corridor removed from Firestore + localStorage
+    └─▶ All signals return to normal cycle
 ```
 
 ### Signal States
 
-| State | Badge | Meaning |
-|---|---|---|
-| `GREEN ✓` | 🟢 Green circle on map | Ambulance is at this intersection — full green |
+| State | Visual | Description |
+|-------|--------|-------------|
+| `GREEN ✓` | 🟢 Green circle | Ambulance at intersection — full green priority |
 | `PREP ⏱` | 🟡 Amber circle | Next intersection — signal preparing to clear |
-| `QUEUED` | 🔴 Red circle | Downstream — cross-traffic held red |
-| `✓ CLEAR` | 🟢 Dim green | Ambulance has passed — signal returned to normal cycle |
+| `QUEUED` | 🔴 Red circle | Downstream — cross-traffic held at red |
+| `✓ CLEAR` | ⚪ Dim green | Ambulance passed — signal returned to normal |
+
+---
+
+## 🚦 Signal Control Logic
+
+The signal controller in `streamer.py` runs every **1 second** and uses a hybrid approach:
+
+### Dynamic Mode (Density Difference > 10%)
+```
+IF avg(N/S density) > avg(E/W density) + 10%:
+    → N/S axis gets GREEN, E/W gets RED
+    
+IF avg(E/W density) > avg(N/S density) + 10%:
+    → E/W axis gets GREEN, N/S gets RED
+```
+
+### Fixed Cycle Mode (Balanced Traffic)
+```
+GREEN  (20s) → YELLOW (3s buffer) → RED (15s) → swap axes → repeat
+```
+
+### Emergency Override
+```
+Ambulance detected by YOLO → ALL signals YELLOW (3s) → 
+    Detection node: GREEN (corridor clear)
+    All other nodes: RED (cross-traffic stopped)
+    → Auto-clear after vehicle passes
+```
+
+### Priority Hierarchy
+```
+IoT Geofence Preemption > Emergency YOLO Detection > Manual Override > Auto Cycle
+```
 
 ---
 
 ## 🏙️ City Coverage
 
-| City | State | Key Intersections |
-|---|---|---|
-| **Delhi** | Delhi NCR | Dwarka Sector 12, Connaught Place, AIIMS, Rohini, Karol Bagh… |
-| **Mumbai** | Maharashtra | Dadar TT Circle, Andheri Junction, BKC, Borivali, Thane… |
-| **Bengaluru** | Karnataka | Silk Board Junction, Hebbal Flyover, Marathahalli, Whitefield… |
-| **Hyderabad** | Telangana | Hitech City, Jubilee Hills Check Post, Ameerpet, Gachibowli… |
-| **Chennai** | Tamil Nadu | Anna Salai, T. Nagar Pondy Bazaar, Koyambedu Hub, Guindy… |
-| **Pune** | Maharashtra | Shivajinagar Circle, Kothrud Depot, FC Road, Hinjewadi… |
-| **Kolkata** | West Bengal | Esplanade Crossing, Park Street, Gariahat More, Howrah Station… |
-| **Ahmedabad** | Gujarat | Navrangpura Circle, ISCON Circle, SG Highway, Satellite Circle… |
+SignalSync covers **8 major Indian cities** with **17–20 real named intersections** per city:
 
-Each city has **17–20 real named intersections** defined in `lib/cityNodes.js`.
+| City | State | Sample Intersections |
+|------|-------|---------------------|
+| 🏛️ **Delhi** | Delhi NCR | Connaught Place, AIIMS, Karol Bagh, IGI Terminal 3, Lajpat Nagar |
+| 🌊 **Mumbai** | Maharashtra | Dadar TT Circle, BKC, Andheri Junction, Mahim Causeway, Borivali |
+| 🌳 **Bengaluru** | Karnataka | Silk Board Junction, Hebbal Flyover, Marathahalli, Whitefield |
+| 🕌 **Hyderabad** | Telangana | Hitech City, Jubilee Hills, Ameerpet, Gachibowli, Charminar |
+| 🏖️ **Chennai** | Tamil Nadu | Anna Salai, T. Nagar Pondy Bazaar, Koyambedu Hub, Guindy |
+| ⛰️ **Pune** | Maharashtra | Shivajinagar, Swargate, Hadapsar, Hinjewadi Phase 1 |
+| 🌉 **Kolkata** | West Bengal | Esplanade Crossing, Park Street, Gariahat More, Howrah Station |
+| 🏗️ **Ahmedabad** | Gujarat | ISCON Circle, Navrangpura, SG Highway, Shivranjani Cross Rd |
+
+All intersection data with real GPS coordinates is stored in `signal-sync/lib/cityNodes.js`.
 
 ---
 
 ## 🔥 Firebase Setup
 
-### Firestore Security Rules (recommended)
+### Required Services
+1. **Authentication** → Enable Email/Password sign-in method
+2. **Cloud Firestore** → Create database in production mode
 
-```js
+### Firestore Collections
+
+| Collection | Purpose |
+|-----------|---------|
+| `users` | User profiles with role field |
+| `corridors` | Active green corridor data |
+| `edge_events` | YOLO emergency detection events |
+| `intersection_stats` | Per-camera density and vehicle data |
+| `signals` | Real-time signal state per intersection |
+
+### Recommended Security Rules
+
+```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Users — only the owner can read/write their profile
     match /users/{uid} {
       allow read, write: if request.auth.uid == uid;
     }
+    // Corridors — authenticated users can create; owner/admin can modify
     match /corridors/{corridorId} {
       allow read: if true;
       allow create: if request.auth != null;
       allow update, delete: if request.auth != null &&
         (resource.data.uid == request.auth.uid ||
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+    // Edge events & stats — read-only for clients; server writes via Admin SDK
+    match /edge_events/{doc} {
+      allow read: if true;
+    }
+    match /intersection_stats/{doc} {
+      allow read: if true;
+    }
+    match /signals/{doc} {
+      allow read: if true;
     }
   }
 }
@@ -337,8 +631,8 @@ service cloud.firestore {
 ## 📞 Emergency Numbers (India)
 
 | Service | Number |
-|---|---|
-| 🚑 Ambulance (National) | **102** |
+|---------|--------|
+| 🚑 Ambulance | **102** |
 | 🚒 Fire Brigade | **101** |
 | 👮 Police | **100** |
 | 🏥 All Emergencies (GVK EMRI) | **108** |
@@ -347,35 +641,38 @@ service cloud.firestore {
 
 ## 🤝 Team
 
-**Team Merge_Conflicts** — India Innovates Hackathon
+<div align="center">
 
-| Role | Contribution |
-|---|---|
-| Full-Stack Development | Next.js app, Firebase integration, Google Maps |
-| UI/UX Design | Dark-mode design system, animations, responsive layout |
-| Data Research | Real intersection coordinates for 8 Indian cities |
-| System Architecture | Green corridor algorithm, real-time signal sync |
+**Team Merge_Conflicts**
+
+*India Innovates Hackathon 2026*
+
+| Area | Contribution |
+|------|-------------|
+| 🖥️ Full-Stack Development | Next.js 16 app, Firebase integration, Google Maps API |
+| 🤖 AI/ML Engineering | YOLOv8 pipeline, 4-direction video processing, signal control |
+| 🎨 UI/UX Design | Dark-mode Visuo design system, animations, responsive layout |
+| 📊 Data Research | Real intersection GPS coordinates for 8 Indian cities |
+| 🏗️ System Architecture | Green corridor algorithm, real-time signal sync, IoT preemption |
+
+</div>
 
 ---
 
-## 🤝 Contributing
+## 📄 License
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Make changes inside `SignalSync/`
-4. Test locally: `npm run dev`
-5. Commit: `git commit -m "Add: description of change"`
-6. Push: `git push origin feature/your-feature-name`
-7. Open a Pull Request on GitHub
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ---
 
 <div align="center">
 
-**Built with ❤️ by [Team Merge_Conflicts](https://github.com/prathamb9/India_Innovates_Merge_Conflicts)**
+<img src="signal-sync/public/logo.png" alt="SignalSync" width="80" />
 
-*SignalSync · India Innovates Hackathon · 2026*
+**SignalSync** · *Restoring the Golden Hour*
 
-*Saving the Golden Hour, one green signal at a time.*
+Built with ❤️ by [Team Merge_Conflicts](https://github.com/Aniruddha1406/India_Innovates_Merge_Conflicts)
+
+*India Innovates Hackathon · 2026*
 
 </div>
